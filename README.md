@@ -110,4 +110,3 @@ NET_NAME options : [1_1, 1_2, ..., 1_9, 2_1,..., 2_9, 3_1 ... 5_9]
 python3 one_experiment_global.py -nn cifar400 -pid PROPERTY_NAME -m marabou_with_ar -a global -r global
 ```
 
-
