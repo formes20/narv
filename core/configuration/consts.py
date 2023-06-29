@@ -1,17 +1,16 @@
-#!/usr/bin/env python3
-
 # REQUIRED IMPORTS FOR CONSTANTS INITIALIZATION
 import sys
 import os
 from datetime import datetime
 
 # CONSTANTS
-CODE_DIR = "/home/artifact"
-PATH_TO_MARABOU_APPLICATIONS_ACAS_EXAMPLES = os.path.join(CODE_DIR, "MarabouApplications/acas/nnet/")
-PATH_TO_MARABOU_APPLICATIONS_ACAS_EXAMPLES = os.path.join(CODE_DIR, "nnet")
-PATH_MINIST_EXAMPLES = ("/oval/")
+CODE_DIR = "/home/artifact/"
+PATH_TO_MARABOU_APPLICATIONS_ACAS_EXAMPLES = os.path.join(CODE_DIR, "Marabou/resources/nnet/acasxu")
+PATH_MINIST_EXAMPLES = "/oval/"
 CEGAR_DIR = os.path.join(CODE_DIR, "CEGAR_NN")
-results_directory = os.path.join(CEGAR_DIR, "experiments/dev_exp_results_archive")
+# results_directory = os.path.join(CEGAR_DIR, "experiments/dev_exp_results_archive")
+results_directory = os.path.join(CODE_DIR, "narv/results/")
+
 
 VERBOSE = False
 INT_MAX = sys.maxsize

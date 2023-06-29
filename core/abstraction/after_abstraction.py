@@ -1,13 +1,11 @@
-from core.abstraction.step import union_couple_of_nodes
-from core.configuration.consts import VERBOSE, FIRST_ABSTRACT_LAYER
 from core.data_structures.Network import Network
 from core.data_structures.ARNode import ARNode
 from core.pre_process.pre_process import preprocess
 from core.utils.debug_utils import debug_print
 from core.utils.abstraction_utils import finish_abstraction
 from core.visualization.visualize_network import visualize_network
-from core.pre_process.pre_process_mine import do_process_before,do_process_after
-#from core.utils.alg2_utils import has_violation, get_limited_random_inputs
+from core.pre_process.pre_process_mine import do_process_before, do_process_after
+# from core.utils.alg2_utils import has_violation, get_limited_random_inputs
 from core.abstraction.step import union_couple_of_nodes
 from core.utils.abstraction_utils import finish_abstraction
 from core.configuration.consts import (
@@ -20,19 +18,19 @@ from core.utils.alg2_utils import has_violation, get_limited_random_inputs
 from core.utils.cal_contribution import calculate_contribution
 from core.utils.cal_layer_average_in_weight import cal_average_in_weight
 from core.utils.combine_influ_of2nodes import combin_influnce
-from core.data_structures.Abstract_action import Abstract_action 
+from core.data_structures.Abstract_action import Abstract_action
 from core.utils.find_relation import find_relation
 import copy
 import time
-import _pickle as cPickle
 
-def node_reunion(network: Network,i: int,j: int):
-    node_name = "x_"+str(i)+"_"+str(j)
-    suffixes = ["_inc","_dec"]
+
+def node_reunion(network: Network, i: int, j: int):
+    node_name = "x_" + str(i) + "_" + str(j)
+    suffixes = ["_inc", "_dec"]
     four_nodes = []
     for suffix in suffixes:
         four_nodes.append(network.name2node_map[node_name + suffix])
-    union_node = ARNode(name="x_"+str(i)+"_"+str(j),
+    union_node = ARNode(name="x_" + str(i) + "_" + str(j),
                         ar_type="",
                         activation_func=relu,
                         in_edges=[],
@@ -55,18 +53,19 @@ def node_reunion(network: Network,i: int,j: int):
     for k in range(len(out_edges_a)):
         out_edge_a = out_edges_a[k]
         out_edge_b = out_edges_b[k]
-        #print(out_edge_b.dest+"vs"+out_edge_a.dest)
-        assert out_edge_a.dest == out_edge_b.dest 
-        edge = Edge(src=union_node.name, dest=out_edge_a.dest, weight=out_edge_a.weight+out_edge_b.weight)
+        # print(out_edge_b.dest+"vs"+out_edge_a.dest)
+        assert out_edge_a.dest == out_edge_b.dest
+        edge = Edge(src=union_node.name, dest=out_edge_a.dest, weight=out_edge_a.weight + out_edge_b.weight)
         union_node.out_edges.append(edge)
         dest_node = network.name2node_map[out_edge_a.dest]
         dest_node.in_edges.append(edge)
 
-    assert len(union_node.out_edges) == len(network.layers[i+1].nodes)   
+    assert len(union_node.out_edges) == len(network.layers[i + 1].nodes)
     for node in four_nodes:
-        network.remove_node(node,i)
+        network.remove_node(node, i)
 
     network.layers[i].nodes.append(union_node)
+
 
 # def node_reunion_inc(network: Network,i: int,j: int):
 #     node_name = "x_"+str(i)+"_"+str(j)
@@ -106,7 +105,7 @@ def node_reunion(network: Network,i: int,j: int):
 #         network.remove_node(node,i)
 
 #     network.layers[i].nodes.append(union_node)
-                
+
 # def node_reunion_dec(network: Network,i: int,j: int):
 #     node_name = "x_"+str(i)+"_"+str(j)
 #     suffixes = ["_neg_dec","_pos_dec"]
@@ -147,30 +146,28 @@ def node_reunion(network: Network,i: int,j: int):
 
 #     network.layers[i].nodes.append(union_node)
 
-def after_abstraction(network: Network,free_layer:int,ACAS: bool):
+def after_abstraction(network: Network, free_layer: int, ACAS: bool):
     count = 0
     network.generate_name2node_map()
     if ACAS:
         NUMBER_OF_LAYER = 50
     else:
         NUMBER_OF_LAYER = 512
-    for i in range(FIRST_ABSTRACT_LAYER,len(network.layers)-2):
+    for i in range(FIRST_ABSTRACT_LAYER, len(network.layers) - 2):
         for j in range(NUMBER_OF_LAYER):
-            node_name = "x_"+str(i)+"_"+str(j)
+            node_name = "x_" + str(i) + "_" + str(j)
             free = True
             if i <= free_layer:
-                suffixes = ["_inc","_dec"]
+                suffixes = ["_inc", "_dec"]
                 for suffix in suffixes:
                     if node_name + suffix not in network.name2node_map.keys():
                         free = False
                     elif network.name2node_map[node_name + suffix].deleted:
                         free = False
                 if free:
-                    node_reunion(network,i,j)
-                    print(node_name+"  is free")
+                    node_reunion(network, i, j)
+                    print(node_name + "  is free")
                     network.generate_name2node_map()
-                    count +=1 
-
-            
+                    count += 1
     print("________________________________________AFTER ABSTRACTION")
     print(count)

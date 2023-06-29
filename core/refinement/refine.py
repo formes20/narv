@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
-
 from typing import List
 
 from core.data_structures.Network import Network
-from core.refinement.step import split_back,add_back,split_back_fixed
+from core.refinement.step import split_back, add_back, split_back_fixed
 
 
-def refine(network:Network, sequence_length:int=1, visualize:bool=False, **kws):
+def refine(network: Network, sequence_length: int = 1, visualize: bool = False, **kws):
     """
     refine @network by applying @sequence_length refinement steps
     :param network: Network to refine
@@ -32,29 +30,31 @@ def refine(network:Network, sequence_length:int=1, visualize:bool=False, **kws):
     network.weights = network.generate_weights()
     return network
 
-def global_refine(network:Network, processed_net, ori_var2val, actions, **kws):
-    #r_sequence = get_global_refinement_seq(network=network, sequence_len=sequence_length,  **kws,  processed_net)
+
+def global_refine(network: Network, processed_net, ori_var2val, actions, **kws):
+    # r_sequence = get_global_refinement_seq(network=network, sequence_len=sequence_length,  **kws,  processed_net)
     network.generate_name2node_map()
     example = kws.get("example")
-    refine_part = network.get_global_refine_part(network,network.orig_name2node_map,  example,  processed_net, ori_var2val, actions)
+    refine_part = network.get_global_refine_part(network, network.orig_name2node_map, example, processed_net,
+                                                 ori_var2val, actions)
     print(refine_part)
     print("########################refine node name########################")
     part2node_map = network.get_part2node_map()
-    #print(part2node_map)
+    # print(part2node_map)
 
-    union_node_name = part2node_map.get(refine_part[0].split("+")[0],None)
-    #print(union_node_name+'name')
+    union_node_name = part2node_map.get(refine_part[0].split("+")[0], None)
+    # print(union_node_name+'name')
     if not network.name2node_map[union_node_name].deleted:
-        if union_node_name in network.name2node_map.keys():  #split back
-        #       
+        if union_node_name in network.name2node_map.keys():  # split back
             print("split back")
             split_back_fixed(network, refine_part)
     else:
-        print("add back")                                 #add back
+        print("add back")  # add back
         add_back(network, refine_part)
     network.biases = network.generate_biases()
     network.weights = network.generate_weights()
     return network
+
 
 def get_refinement_sequence(network, sequence_len=1, **kws) -> List[float]:
     """
@@ -78,8 +78,8 @@ def get_refinement_sequence(network, sequence_len=1, **kws) -> List[float]:
         example = {}
     part2loss_map = network.get_part2loss_map(example=example)
     top_part_loss = sorted(part2loss_map.items(),
-                           key=lambda x:x[1],
+                           key=lambda x: x[1],
                            reverse=True
-                          )[:sequence_len]
+                           )[:sequence_len]
     # p2l stands for "part2loss", pl[0] is part name
     return [p2l[0] for p2l in top_part_loss]

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import itertools
 from typing import AnyStr, List, Dict
 from collections import defaultdict
@@ -8,6 +6,8 @@ from core.data_structures.ARNode import ARNode
 from core.utils.activation_functions import relu
 from core.utils.abstraction_utils import choose_weight_func
 from core.utils.dict_merge import fun_dict_merge
+
+
 class Layer:
     """
     This class represents a layer in a neural network that supports abstraction
@@ -15,23 +15,26 @@ class Layer:
     ARNodes and layer type (input, hidden, output), and include some functions
     to manipulate the nodes in it, e.g abstract, split_pos_neg, split_inc_dec
     """
-    def __init__(self, type_name:AnyStr="hidden", nodes:List=[]):
+
+    def __init__(self, type_name: AnyStr = "hidden", nodes: List = []):
         self.nodes = nodes
         self.type_name = type_name  # type_name is one of hidden/input/output
 
     def __eq__(self, other) -> bool:
         if len(self.nodes) != len(other.nodes):
             return False
-        other_nodes_sorted = sorted(other.nodes, key=lambda node:node.name)
-        for i, node in enumerate(sorted(self.nodes, key=lambda node:node.name)):
+        other_nodes_sorted = sorted(other.nodes, key=lambda node: node.name)
+        for i, node in enumerate(sorted(self.nodes, key=lambda node: node.name)):
             if node != other_nodes_sorted[i]:
                 print("self.nodes[{}] ({}) != other.nodes[{}] ({})".format(i, node, i, other_nodes_sorted[i]))
                 return False
         return True
 
-    def evaluate(self, cur_values:List, nodes2variables:Dict, next,
-                 variables2nodes:Dict, variable2layer_index:Dict) -> List:
-        "return the next layer values, given cur_values as self inputs"
+    def evaluate(self, cur_values: List, nodes2variables: Dict, next,
+                 variables2nodes: Dict, variable2layer_index: Dict) -> List:
+        """
+        return the next layer values, given cur_values as self inputs
+        """
         cur_var2val = {nodes2variables[node.name] for node in self.nodes}
         next_var2val = {nodes2variables[node.name] for node in next.nodes}
         out_values = []
@@ -40,7 +43,7 @@ class Layer:
                 pass
         return out_values
 
-    def split_pos_neg(self, name2node_map:Dict) -> None:
+    def split_pos_neg(self, name2node_map: Dict) -> None:
         """
         split nodes in layer to pos/neg nodes
         :param name2node_map: Dict map from name to relevant ARNode
@@ -59,10 +62,10 @@ class Layer:
                 new_nodes.extend(splitted_nodes)
                 for sn in splitted_nodes:
                     name2node_map[sn.name] = sn
-                del(name2node_map[node.name])
+                del (name2node_map[node.name])
             self.nodes = new_nodes
 
-    def split_inc_dec(self, name2node_map:Dict) -> None:
+    def split_inc_dec(self, name2node_map: Dict) -> None:
         """
         split nodes in layer to inc/dec nodes
         :param name2node_map: Dict map from name to relevant ARNode
@@ -71,18 +74,18 @@ class Layer:
             # all nodes are increasing nodes
             new_nodes = []
             for node in self.nodes:
-                new_node = ARNode(name=node.name+"_inc",
-                          ar_type="inc",
-                          activation_func=node.activation_func,
-                          in_edges=[],
-                          out_edges=[],
-                          bias=node.bias,
-                          upper_bound=node.upper_bound,
-                          lower_bound=node.lower_bound
-                         )
+                new_node = ARNode(name=node.name + "_inc",
+                                  ar_type="inc",
+                                  activation_func=node.activation_func,
+                                  in_edges=[],
+                                  out_edges=[],
+                                  bias=node.bias,
+                                  upper_bound=node.upper_bound,
+                                  lower_bound=node.lower_bound
+                                  )
                 new_nodes.append(new_node)
                 name2node_map[new_node.name] = new_node
-                del(name2node_map[node.name])
+                del (name2node_map[node.name])
             self.nodes = new_nodes
         else:
             # split to increasing and decreasing nodes
@@ -93,9 +96,8 @@ class Layer:
                 new_nodes.extend(splitted_nodes)
                 for sn in splitted_nodes:
                     name2node_map[sn.name] = sn
-                del(name2node_map[node.name])
+                del (name2node_map[node.name])
             self.nodes = new_nodes
-    
 
     def get_couples_of_same_ar_type(self) -> List:
         layer_couples = list(itertools.combinations(self.nodes, 2))
@@ -103,7 +105,6 @@ class Layer:
                          couple[0].ar_type == couple[1].ar_type and
                          ((couple[0].out_edges[0].weight >= 0) == (couple[1].out_edges[0].weight >= 0))]
         return layer_couples
-
 
     def get_ar_type2nodes(self) -> List:
         """
@@ -114,7 +115,7 @@ class Layer:
             node_type2nodes[node.ar_type].append(node)
         return node_type2nodes
 
-    def get_same_type_nodes(self, is_pos:bool, is_inc:bool) -> List:
+    def get_same_type_nodes(self, is_pos: bool, is_inc: bool) -> List:
         node_names = []
         for node in self.nodes:
             if pos_neg:
@@ -133,7 +134,7 @@ class Layer:
                         node_names.append(node.name)
         return node_names
 
-    def abstract(self, name2node_map:Dict, next_layer_part2union:Dict) -> Dict:
+    def abstract(self, name2node_map: Dict, next_layer_part2union: Dict) -> Dict:
         if self.type_name == "output":
             # output layer and its nodes' names are not changed
             # return trivial next_layer_part2union
@@ -145,28 +146,28 @@ class Layer:
                               in_edges=[],
                               out_edges=[],
                               bias=0.0
-                             )
+                              )
         node_inc_neg = ARNode(name="",
                               ar_type="inc",
                               activation_func=relu,
                               in_edges=[],
                               out_edges=[],
                               bias=0.0
-                             )
+                              )
         node_dec_pos = ARNode(name="",
                               ar_type="dec",
                               activation_func=relu,
                               in_edges=[],
                               out_edges=[],
                               bias=0.0
-                             )
+                              )
         node_dec_neg = ARNode(name="",
                               ar_type="dec",
                               activation_func=relu,
                               in_edges=[],
                               out_edges=[],
                               bias=0.0
-                             )
+                              )
 
         current_layer_part2union = {}
 
@@ -232,16 +233,15 @@ class Layer:
                     dest_node = name2node_map[dest]
                     max_min_func, cur_weight = choose_weight_func(node, dest_node)
                     cur_weight = dest2part_weights[dest].get(part, cur_weight)
-                    dest2part_weights[dest][part] = max_min_func(cur_weight,
-                                                                 edge.weight)
+                    dest2part_weights[dest][part] = max_min_func(cur_weight, edge.weight)
             # choose the minimal/maximal weight as the weight from node to dest
             dest_weights = {}
             for dest, part_weights in dest2part_weights.items():
                 if dest not in current_dest_names:
                     continue
-                part_weights = {p:ws for p,ws in part_weights.items()
+                part_weights = {p: ws for p, ws in part_weights.items()
                                 if p in node_parts
-                               }
+                                }
                 dest_weights[dest] = sum(part_weights.values())
 
                 # define the node bias to be the min/max bias among all parts
@@ -259,7 +259,6 @@ class Layer:
                 except AttributeError:
                     dest_node.new_in_edges = [edge]
 
-
             # update the out edges of the node
             node.out_edges = node.new_out_edges
             del node.new_out_edges
@@ -274,8 +273,8 @@ class Layer:
         return current_layer_part2union
 
     @staticmethod
-    def get_loss(part:AnyStr, node:ARNode,
-                 part2node_map:Dict[AnyStr, ARNode]) -> float:
+    def get_loss(part: AnyStr, node: ARNode,
+                 part2node_map: Dict[AnyStr, ARNode]) -> float:
         total_loss = 0
         for part_edge in part.out_edges:
             # get the dest to get its node to get the edge to decrease
@@ -289,30 +288,30 @@ class Layer:
         return total_loss
 
     def __str__(self) -> str:
-        return self.type_name + "\n\t" + \
-               "\n\t".join(node.__str__() for node in self.nodes)
+        return self.type_name + "\n\t" + "\n\t".join(node.__str__() for node in self.nodes)
 
     def generate_ori_nodename2weight(self) -> None:
-      
-        #if self.type_name == "input":
-           
+
+        # if self.type_name == "input":
+
         #    for node in self.nodes:
         #        node.ori_nodename2weight = {node.name:1}
-        #else:    
+        # else:
         for node in self.nodes:
             node.generate_ori_nodename2weight()
-            #print(node)
-    
-    def generate_symb_map(self, name2node_map:Dict) -> None:
+            # print(node)
+
+    def generate_symb_map(self, name2node_map: Dict) -> None:
         for node in self.nodes:
             node.ori_nodename2weight = node.find_ori_symbolic(name2node_map)
-            #print(node)
+            # print(node)
             node.calc_bounds(name2node_map)
-            #print(node)
-    def calculate_bounds(self, name2node_map:Dict) -> None:
+            # print(node)
+
+    def calculate_bounds(self, name2node_map: Dict) -> None:
         for node in self.nodes:
             node.calc_bounds(name2node_map)
-    
+
     def generate_in_edge_weight_sum(self) -> None:
         for node in self.nodes:
             node.sum_in_edges_weights()

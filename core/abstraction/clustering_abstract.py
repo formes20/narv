@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import copy
 import random
 from core.data_structures.Network import Network
@@ -12,9 +10,10 @@ from core.configuration.consts import (
 )
 from core.utils.cluster import kMeans
 
-def heuristic_abstract_clustering(network: Network, test_property:dict,
-                       do_preprocess:bool=True, sequence_length:int=50,
-                       verbose:bool=VERBOSE) -> Network:
+
+def heuristic_abstract_clustering(network: Network, test_property: dict,
+                                  do_preprocess: bool = True, sequence_length: int = 50,
+                                  verbose: bool = VERBOSE) -> Network:
     """
     the main idea:
     find the best network to start query.
@@ -47,7 +46,6 @@ def heuristic_abstract_clustering(network: Network, test_property:dict,
         preprocess(network)
     orig_net = copy.deepcopy(network)
 
-
     input_size = len(network.layers[0].nodes)
     # generate random inputs in the bound of the test property
     random_inputs = get_limited_random_inputs(
@@ -61,8 +59,8 @@ def heuristic_abstract_clustering(network: Network, test_property:dict,
     # while no violation occurs, continue to abstract
     while not has_violation(network, test_property, random_inputs):
         # check that the network is not fully abstracted
-        if all(n<=4 for n in layer_index2number_of_clusters.values()):
-        # if all(len(layer.nodes)<=4 for layer in network.layers[1:-1]):
+        if all(n <= 4 for n in layer_index2number_of_clusters.values()):
+            # if all(len(layer.nodes)<=4 for layer in network.layers[1:-1]):
             break
 
         # in every layer, generate clusters
@@ -103,9 +101,10 @@ def heuristic_abstract_clustering(network: Network, test_property:dict,
                                verbose=verbose)
     return network
 
-def heuristic_abstract_alg2(network: Network, test_property:dict,
-                       do_preprocess:bool=True, sequence_length:int=50,
-                       verbose:bool=VERBOSE) -> Network:
+
+def heuristic_abstract_alg2(network: Network, test_property: dict,
+                            do_preprocess: bool = True, sequence_length: int = 50,
+                            verbose: bool = VERBOSE) -> Network:
     """
     abstract a given network according to alg 2 method in the paper
     the abstraction is done on @sequence_length pairs that are chosen a.t alg2

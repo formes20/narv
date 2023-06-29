@@ -1,22 +1,23 @@
-#!/usr/bin/env python3
-
 from typing import AnyStr, TypeVar
+
 AnyType = TypeVar("T")
 
 from core.configuration.consts import VERBOSE
+
 
 class Edge:
     """
     This class represent an edge between nodes in neural networks (or graphs),
     and acts like a regular edge in other graphs
     """
-    def __init__(self, src: AnyStr, dest:AnyStr, weight:float):
+
+    def __init__(self, src: AnyStr, dest: AnyStr, weight: float):
         # src, dest are names (ids) of nodes (strings)
         self.src = src
         self.dest = dest
         self.weight = weight
 
-    def __eq__(self, other:AnyType, verbose:bool=VERBOSE) -> bool:
+    def __eq__(self, other: AnyType, verbose: bool = VERBOSE) -> bool:
         if self.src != other.src:
             if verbose:
                 print("self.src ({}) != other.src ({})".format(self.src, other.src))

@@ -1,6 +1,3 @@
-#/usr/bin/python3
-
-# external imports
 import os
 import argparse
 import pandas as pd

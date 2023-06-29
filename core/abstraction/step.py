@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from core.utils.debug_utils import embed_ipython
 from core.data_structures.ARNode import ARNode
 from core.data_structures.Edge import Edge

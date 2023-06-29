@@ -1,4 +1,3 @@
-
 import argparse
 import pandas as pd
 from core.configuration import consts
@@ -107,6 +106,7 @@ def parse_args():
                         default=consts.VERBOSE, action="store_true")
     args = parser.parse_args()
     return args.results_dir_name, args.verbose
+
 
 if __name__ == '__main__':
     result_dir_name, verbose = parse_args()

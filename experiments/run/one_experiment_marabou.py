@@ -1,5 +1,3 @@
-#/usr/bin/python3
-
 """
 run one experiment - query marabou engine:
 calculate if property (p1 or p2) is sat/unsat in a net which is represented by a given .nnet formatted file
@@ -55,7 +53,7 @@ def one_experiment(nnet_filename, is_tiny, lower_bound, preprocess_orig_net,
                    is_adversarial_property=False, verbose=consts.VERBOSE):
     if verbose:
         debug_print("one_experiment_marabou({})".format(
-            json.dumps([nnet_filename, is_tiny,  lower_bound,
+            json.dumps([nnet_filename, is_tiny, lower_bound,
                         preprocess_orig_net, property_id, results_directory])))
     if is_tiny:
         example_nets_dir_path = consts.PATH_TO_MARABOU_ACAS_EXAMPLES
@@ -108,18 +106,18 @@ def one_experiment(nnet_filename, is_tiny, lower_bound, preprocess_orig_net,
     df = pd.DataFrame.from_dict({x[0]: [x[1]] for x in res})
     df.to_json(os.path.join(results_directory, "df_" + results_filename))
     with open(os.path.join(results_directory, results_filename), "w") as fw:
-        fw.write("-"*80)
+        fw.write("-" * 80)
         fw.write("parameters:")
-        fw.write("-"*80)
+        fw.write("-" * 80)
         fw.write("\n")
         for arg in vars(args):
             fw.write("{}: {}\n".format(arg, getattr(args, arg)))
-        fw.write("+"*80)
+        fw.write("+" * 80)
         fw.write("results:")
-        fw.write("+"*80)
+        fw.write("+" * 80)
         fw.write("\n")
-        for (k,v) in res:
-            fw.write("{}: {}\n".format(k,v))
+        for (k, v) in res:
+            fw.write("{}: {}\n".format(k, v))
     return res
 
 
@@ -153,5 +151,3 @@ if __name__ == '__main__':
         verbose=args.verbose
     )
     debug_print(res_one_exp)
-
-

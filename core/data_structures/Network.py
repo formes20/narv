@@ -1,11 +1,14 @@
-#!/usr/bin/env python3
 import sys
 import copy
 import numpy as np
 from typing import Tuple, Dict, List, TypeVar
+
 AnyType = TypeVar('T')
 
-import import_marabou
+sys.path.append("/home/artifact/narv")
+from import_marabou import dynamically_import_marabou
+
+dynamically_import_marabou()
 from maraboupy import MarabouNetworkNNet
 
 from core.data_structures.Edge import Edge
@@ -24,8 +27,9 @@ class Network:
     are also some functions for input evaluation and for interfacing with the
     verifier, Marabou, and for generating Network from .nnet file
     """
-    def __init__(self, layers:List, weights:List=None,
-                 biases:List=None, acasxu_net:MarabouNetworkNNet=None):
+
+    def __init__(self, layers: List, weights: List = None,
+                 biases: List = None, acasxu_net: MarabouNetworkNNet = None):
         self.layers = layers
         self.acasxu_net = acasxu_net
         self.orig_layers = None
@@ -96,7 +100,7 @@ class Network:
             biases.append(layer_biases)
         return biases
 
-    def __eq__(self, other:AnyType, verbose:bool=VERBOSE) -> bool:
+    def __eq__(self, other: AnyType, verbose: bool = VERBOSE) -> bool:
         if self.get_general_net_data() != other.get_general_net_data():
             if verbose:
                 print("self.get_general_net_data() ({}) != other.get_general_net_data() ({})".format(
@@ -133,7 +137,7 @@ class Network:
             "num_hidden_layers": num_hidden_layers
         }
 
-    def get_variable2layer_index(self, variables2nodes:Dict) -> Dict:
+    def get_variable2layer_index(self, variables2nodes: Dict) -> Dict:
         variable2layer_index = {}
         node2layer_map = self.get_node2layer_map()
         for variable, node in variables2nodes.items():
@@ -142,7 +146,7 @@ class Network:
             variable2layer_index[variable] = node2layer_map[node]
         return variable2layer_index
 
-    def evaluate(self, input_values:Dict) -> Dict:
+    def evaluate(self, input_values: Dict) -> Dict:
         # print("input_values={}".format(input_values.items()))
         nodes2variables, variables2nodes = self.get_variables()
         # variable2layer_index = self.get_variable2layer_index(variables2nodes)
@@ -191,7 +195,7 @@ class Network:
             node2val.update(cur_node2val)
         return node2val
 
-    def speedy_evaluate(self, input_values:Dict) -> List:
+    def speedy_evaluate(self, input_values: Dict) -> List:
         assert self.weights is not None
         assert self.biases is not None
         input_list = [v for (k, v) in sorted(input_values.items(), key=lambda x: x[0])[:len(self.layers[0].nodes)]]
@@ -219,7 +223,7 @@ class Network:
                 name2node_map[node.name] = node
         self.name2node_map = name2node_map
 
-    def remove_node(self, node:ARNode, layer_index:float) -> None:
+    def remove_node(self, node: ARNode, layer_index: float) -> None:
         node = self.name2node_map[node.name]
         layer = self.layers[layer_index]
         for in_edge in node.in_edges:
@@ -250,8 +254,8 @@ class Network:
         del layer.nodes[i]
         del node
         self.generate_name2node_map
-    
-    def get_part2loss_map(self, example:Dict={}) -> Dict:
+
+    def get_part2loss_map(self, example: Dict = {}) -> Dict:
         part2loss = {}
         nodes2edge_between_map = self.get_nodes2edge_between_map()
         part2node_map = self.get_part2node_map()
@@ -291,9 +295,9 @@ class Network:
         return node2layer_map
 
     def get_layer_part2loss_map(self,
-                                orig_name2node_map:Dict,
-                                nodes2edge_between_map:Dict,
-                                example:Dict={}) -> Dict:
+                                orig_name2node_map: Dict,
+                                nodes2edge_between_map: Dict,
+                                example: Dict = {}) -> Dict:
         part2loss = {}
         part2node = self.get_part2node_map()
         nodes2variables, variables2nodes = self.get_variables()
@@ -317,39 +321,38 @@ class Network:
         return part2loss
 
     @staticmethod
-
     def get_global_refine_part(self,
-                                orig_name2node_map:Dict,
-                                example,
-                                orig_net,
-                                ori_var2val,
-                                actions) -> list:
+                               orig_name2node_map: Dict,
+                               example,
+                               orig_net,
+                               ori_var2val,
+                               actions) -> list:
         refineables = []
         node2loss = {}
         node2eff = {}
         name2action = {}
         # part2node = self.get_part2node_map()
         # nodes2variables, variables2nodes = self.get_variables()
-        #ori_nodes2variables, ori_variables2nodes = orig_net.get_variables()
-        #print(orig_net)
+        # ori_nodes2variables, ori_variables2nodes = orig_net.get_variables()
+        # print(orig_net)
         cur_var2val = self.evaluate(example)
         part2node_map = self.get_part2node_map()
         self.generate_name2node_map()
-        #print(list(cur_var2val.values())[-5:])
-##caculate max activation of each layer in original network with example input##
-        #print(ori_var2val.items())
+        # print(list(cur_var2val.values())[-5:])
+        ##caculate max activation of each layer in original network with example input##
+        # print(ori_var2val.items())
         max_of_each_layer = []
         for ori_layer in orig_net.layers:
-            max_activation = -sys.maxsize-1
+            max_activation = -sys.maxsize - 1
             for ori_node in ori_layer.nodes:
                 node_val = ori_var2val.get(ori_node.name + "_f",
-                                                   ori_var2val.get(ori_node.name + "_b",
-                                                                       ori_var2val.get(ori_node.name,None)))
+                                           ori_var2val.get(ori_node.name + "_b",
+                                                           ori_var2val.get(ori_node.name, None)))
                 if node_val != None:
                     if node_val > max_activation:
                         max_activation = node_val
             max_of_each_layer.append(max_activation)
-        #print(max_of_each_layer)
+        # print(max_of_each_layer)
         print(max_of_each_layer)
 
         for action in actions:
@@ -379,34 +382,36 @@ class Network:
                         a_activation = 0
                         ori_activation = 0
                         a_node_val = cur_var2val.get(a_node.name + "_f",
-                                                        cur_var2val.get(a_node.name + "_b",
-                                                                            cur_var2val.get(a_node.name)))
+                                                     cur_var2val.get(a_node.name + "_b",
+                                                                     cur_var2val.get(a_node.name)))
                         num_of_outedges = 0
                         for out_edge in a_node.out_edges:
-                            a_activation += abs(out_edge.weight) * a_node_val  # abstracted node's activation x abs(outedges)
+                            a_activation += abs(
+                                out_edge.weight) * a_node_val  # abstracted node's activation x abs(outedges)
                             num_of_outedges += 1
                         parts = a_node.name.split("+")
-                        #print(parts)
+                        # print(parts)
                         assert len(parts) > 1
                         for part in parts:
                             ori_part_activation = 0
                             orig_part_node = orig_name2node_map[part]
                             node_val = ori_var2val.get(orig_part_node.name + "_f",
-                                                        ori_var2val.get(orig_part_node.name + "_b",
-                                                                            ori_var2val.get(orig_part_node.name,None)))
+                                                       ori_var2val.get(orig_part_node.name + "_b",
+                                                                       ori_var2val.get(orig_part_node.name, None)))
                             for out_edge in orig_part_node.out_edges:
                                 ori_part_activation += abs(out_edge.weight) * node_val
 
                             ori_activation += ori_part_activation
                         node2eff[a_node.name] = ori_activation
-                        diff_activation = abs(abs(a_activation)-abs(ori_activation))
+                        diff_activation = abs(abs(a_activation) - abs(ori_activation))
                         if max_of_each_layer[layer_index] == 0:
                             if diff_activation != 0:
                                 node2loss[a_node.name] = 10000000
                             else:
                                 node2loss[a_node.name] = 0
                         else:
-                            node2loss[a_node.name] = diff_activation / (max_of_each_layer[layer_index] * num_of_outedges)
+                            node2loss[a_node.name] = diff_activation / (
+                                        max_of_each_layer[layer_index] * num_of_outedges)
         else:
             refine_list = []
             refine_layer = 10
@@ -420,23 +425,23 @@ class Network:
                     refine_list.append(node_name)
                 else:
                     continue
-            print("refine_list")   
+            print("refine_list")
             print(refine_list)
-            #deleted_name = refineable_action.name_1
-            #print(deleted_name)
-            #print("deleted_name")
-            #name2action[deleted_name] = refineable_action
+            # deleted_name = refineable_action.name_1
+            # print(deleted_name)
+            # print("deleted_name")
+            # name2action[deleted_name] = refineable_action
             for deleted_name in refine_list:
                 deleted_node_activation = self.deleted_name2node[deleted_name].bias
-            # parts = deleted_name.split("+")
-            # if len(parts) == 1:  
+                # parts = deleted_name.split("+")
+                # if len(parts) == 1:
                 deleted_node = orig_name2node_map[deleted_name]
                 deleted_node_val = ori_var2val.get(deleted_name + "_f",
-                                                ori_var2val.get(deleted_name + "_b",
-                                                                    ori_var2val.get(deleted_name)))
-                num_of_outedges = 0                                                    
+                                                   ori_var2val.get(deleted_name + "_b",
+                                                                   ori_var2val.get(deleted_name)))
+                num_of_outedges = 0
                 for out_edge in deleted_node.out_edges:
-                    deleted_node_inf += abs(out_edge.weight) * abs(deleted_node_val-deleted_node_activation)
+                    deleted_node_inf += abs(out_edge.weight) * abs(deleted_node_val - deleted_node_activation)
                     num_of_outedges += 1
             # else:
             #     assert False
@@ -465,16 +470,16 @@ class Network:
             #             num_of_outedges += 1
             #     part_eff = abs(parts_out_edges_sum * other_parts_bound)
             #     deleted_node_activation = part_eff
-            if max_of_each_layer[int(deleted_name.split("_")[1])] != 0 :
-            #node2loss[deleted_name] = abs(deleted_node_activation) / max_of_each_layer[deleted_name.split("_")[1]] 
-                node2loss[deleted_name] = abs(deleted_node_inf) / (max_of_each_layer[int(deleted_name.split("_")[1])] * num_of_outedges)             
-            #node2loss[deleted_name] = abs(deleted_node_activation) / num_of_outedges
+            if max_of_each_layer[int(deleted_name.split("_")[1])] != 0:
+                # node2loss[deleted_name] = abs(deleted_node_activation) / max_of_each_layer[deleted_name.split("_")[1]]
+                node2loss[deleted_name] = abs(deleted_node_inf) / (
+                            max_of_each_layer[int(deleted_name.split("_")[1])] * num_of_outedges)
+            # node2loss[deleted_name] = abs(deleted_node_activation) / num_of_outedges
             else:
                 if deleted_node_inf != 0:
                     node2loss[deleted_name] = 10000000
                 else:
                     node2loss[deleted_name] = 0
-
 
         # for layer_index,a_layer in enumerate(self.layers[1:-2],1):
         #     for a_node in a_layer.nodes:
@@ -561,14 +566,14 @@ class Network:
         #         else:
         #             node2loss[deleted_name] = 0
         # self.generate_name2node_map()
-        top_diff_node = sorted(node2loss.items(),key = lambda x:x[1])[-1][0]
+        top_diff_node = sorted(node2loss.items(), key=lambda x: x[1])[-1][0]
         operations = []
-        #atoms = []
+        # atoms = []
         print(top_diff_node)
         print('top_diff_node')
         if refineables:
-            
-            #combined node
+
+            # combined node
             # parts = top_diff_node.split("+")
             # #pos = parts[0].split('_')[3]=="pos"
             # inc = parts[0].split('_')[3]=="inc"
@@ -671,7 +676,7 @@ class Network:
             #                 rely.relyed.remove(action)
             #             actions.remove(action)
             #             break    
-            part_name = refine_action.name_1.split("+")               
+            part_name = refine_action.name_1.split("+")
         else:
             # refine_action = name2action[top_diff_node]
             # for rely in refine_action.rely:
@@ -732,23 +737,15 @@ class Network:
             #         max_diff_part = other_parts_diff
 
         return part_name
-        
 
-
-
-
-
-
-
-
-    def get_next_nodes(current_values:List) -> List:
+    def get_next_nodes(current_values: List) -> List:
         next_nodes = set([])
         for node in current_values:
             for edge in node.out_edges:
                 next_nodes.add(edge.dest)
         return list(next_nodes)
 
-    def get_part2example_change(self, example:Dict) -> Dict:
+    def get_part2example_change(self, example: Dict) -> Dict:
         """
         run example, calculate difference in each node between its outputed
         value and the original netework outputed value,
@@ -772,7 +769,7 @@ class Network:
             cur_layer_values = next_layer_values
         return part2diffs
 
-    def get_variables(self, property_type:str="basic") -> Tuple[Dict, Dict]:
+    def get_variables(self, property_type: str = "basic") -> Tuple[Dict, Dict]:
         nodes2variables = {}
         variables2nodes = {}
         var_index = 0
@@ -785,7 +782,7 @@ class Network:
                     variables2nodes[var_index] = node.name
                     var_index += 1
                 else:  # hidden layer, all nodes with relu activation
-                    if is_acas_xu_conjunction and l_index == len(self.layers)-3:
+                    if is_acas_xu_conjunction and l_index == len(self.layers) - 3:
                         # prev output layer, no relu
                         suffices = ["_b"]
                     # elif is_adversarial and l_index == len(self.layers)-2:
@@ -821,5 +818,5 @@ class Network:
         return s
 
     def generate_in_edge_weight(self) -> None:
-        for i in range(0,len(self.layers)):
+        for i in range(0, len(self.layers)):
             self.layers[i].generate_in_edge_weight_sum()

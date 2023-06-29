@@ -1,4 +1,3 @@
-
 import json
 import argparse
 import numpy as np
@@ -23,13 +22,15 @@ from experiments.consts import (
 # exp_result_dirname = "2020-05-07_CAV_2020_Fig10"
 # total_num_experiments = 2400
 # exp_result_dirname = "2020-06_08_best_abstraction_wrt_adversarial_properties"
-# total_num_experiments = 2700 # 45 nets, 20 acasxu properties, 3 abstraction methods
+# total_num_experiments = 2700  # 45 nets, 20 acasxu properties, 3 abstraction methods
 # exp_result_dirname = "2020-06_07_best_abstraction_wrt_acasxu_properties"
-total_num_experiments = 540 # 45 nets, 4 acasxu properties, 3 abstraction methods
+total_num_experiments = 540  # 45 nets, 4 acasxu properties, 3 abstraction methods
+
+
 # exp_result_dirname = "naive_vs_alg2_wrt_acasxu"
-# total_num_experiments = 360 # sum of experimetns
+# total_num_experiments = 360  # sum of experimetns
 # exp_result_dirname = "2020-06_07_best_abstraction_wrt_basic_properties"
-# total_num_experiments = 270 # 45 nets, 2 basic properties, 3 abstraction methods
+# total_num_experiments = 270  # 45 nets, 2 basic properties, 3 abstraction methods
 # exp_result_dirname = "2020-05-11_CAV_2020_Fig7"
 # total_num_experiments = 1440
 # exp_result_dirname = "2020-05-06_CAV_2020_Fig9"
@@ -98,7 +99,7 @@ def show_df_col_vs_col(df, col_x="orig_query_time", col_y="last_query_time", col
     # variance = std ** 2
     # point_sizes = [(math.e**(((x-mean)**2) / (2*variance)))/(2*std*(2*math.pi)**0.5) for x in point_sizes]
     # point_sizes = [20*4**(float(i)-min(point_sizes))/(max(point_sizes)-min(point_sizes)) for i in point_sizes]
-    point_sizes = [20*4**x for x in list(np.array(point_sizes) / np.linalg.norm(point_sizes))]
+    point_sizes = [20 * 4 ** x for x in list(np.array(point_sizes) / np.linalg.norm(point_sizes))]
 
     # finished_sizes = df_finished.groupby([col_x, col_y]).size()
     # mean = finished_sizes.mean()
@@ -159,7 +160,6 @@ def show_df_col_vs_col(df, col_x="orig_query_time", col_y="last_query_time", col
         ncol=1,
         fontsize=20
     )
-
 
     # f, ax = plt.subplots(figsize=(6, 6))
     # ax.scatter(x=df[col_x], y=df[col_y], c=color)
@@ -278,7 +278,7 @@ def show_cegar_vs_cetar_wrt_last_time(exp_result_dirname):
     cetar_df = cegarabou_df[cegarabou_df.filenames.str.contains("__R_cetar__")]
     print(cegar_df.shape)
     print(cetar_df.shape)
-    assert(cegar_df.shape[0] + cetar_df.shape[0] == cegarabou_df.shape[0])
+    assert (cegar_df.shape[0] + cetar_df.shape[0] == cegarabou_df.shape[0])
 
     replace_func = lambda filename: filename.replace("__R_cegar__", "__R_cetar__")
     cegar_df["replace_filenames"] = cegar_df.filenames.apply(replace_func)
@@ -440,8 +440,10 @@ def show_complete_vs_heuristic_wrt_num_of_queries(exp_result_dirname, xscale=Non
     if "A" in cegarabou_methods:
         cegarabou_methods.pop("A")
     cegarabou_df = read_cegarabou_df(exp_result_dirname=exp_result_dirname, best_cegarabou_methods=cegarabou_methods)
-    cegarabou_df["refinement_sequence_length"] = cegarabou_df.filenames.apply(lambda s: int(s.split("__RS_")[1].split("__AS_")[0]))
-    cegarabou_df["num_of_refine_steps"] = cegarabou_df["num_of_refine_steps"] * cegarabou_df["refinement_sequence_length"]
+    cegarabou_df["refinement_sequence_length"] = cegarabou_df.filenames.apply(
+        lambda s: int(s.split("__RS_")[1].split("__AS_")[0]))
+    cegarabou_df["num_of_refine_steps"] = cegarabou_df["num_of_refine_steps"] * cegarabou_df[
+        "refinement_sequence_length"]
     show_col_vs_col_wrt_category(df=cegarabou_df,
                                  left_col="_A_complete_",
                                  right_col="_A_heuristic_",
@@ -453,8 +455,6 @@ def show_complete_vs_heuristic_wrt_num_of_queries(exp_result_dirname, xscale=Non
                                  max_x_limit=None,
                                  min_y_limit=0,
                                  max_y_limit=None)
-
-
 
 
 def show_abstraction1_vs_abstraction2_wrt_sum_of_query_times(
@@ -532,17 +532,17 @@ def show_marabou_vs_cegarabou_wrt_cat(exp_result_dirname,
         else:
             marabou_df = marabou_df[marabou_df.filenames.str.contains("__{}_{}_".format(k, v))]
     best_cegarabou_methods.update(exp_params)
-    for k,v in best_cegarabou_methods.items():
+    for k, v in best_cegarabou_methods.items():
         if type(v) == list:
             dfs = [cegarabou_df[cegarabou_df.filenames.str.contains("__{}_{}_".format(k, v1))] for v1 in v]
             cegarabou_df = pd.concat(dfs)
         else:
             cegarabou_df = cegarabou_df[cegarabou_df.filenames.str.contains("__{}_{}_".format(k, v))]
     if cegarabou_df.shape[0] == 0:
-        print ("cegarabou_df.shape[0] == 0, check params")
+        print("cegarabou_df.shape[0] == 0, check params")
         assert False
     if marabou_df.shape[0] <= 0:
-        print ("marabou_df.shape[0] == 0, check params")
+        print("marabou_df.shape[0] == 0, check params")
         assert False
     if cegarabou_df.shape[0] != marabou_df.shape[0]:
         print("notice that there are timeouts in at least one method:")
@@ -653,7 +653,7 @@ def main():
     # cegarabou parameters
     # show_complete_vs_heuristic_wrt_num_of_queries(exp_result_dirname)
     abstractions = ["_A_complete_", "_A_heuristic_alg2_"]  # , "_A_heuristic_random_"]
-    for abstraction_1, abstraction_2 in combinations(abstractions,2):
+    for abstraction_1, abstraction_2 in combinations(abstractions, 2):
         show_abstraction1_vs_abstraction2_wrt_sum_of_query_times(
             exp_result_dirname=exp_result_dirname,
             abstraction_1=abstraction_1,

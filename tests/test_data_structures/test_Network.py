@@ -1,9 +1,12 @@
 #/usr/bin/python3
 
 import os
+import sys
 import copy
 import random
-import import_marabou
+sys.path.append("/home/artifact/narv")
+from import_marabou import dynamically_import_marabou
+dynamically_import_marabou()
 from maraboupy import MarabouCore
 
 # import pytest

@@ -1,5 +1,3 @@
-#/usr/bin/python3
-
 """
 analyze one experiment - print and plot interesting details and graphs
 """
@@ -24,8 +22,8 @@ def read_marabou_df(exp_result_dirname):
         # path_or_buf="/home/yizhak/Research/Code/CEGAR_NN/AR_results/marabou/{}/outfile_df2json/df_all".format(exp_result_dirname))
         # medium no preprocess
         path_or_buf=df_path)
-        # long no preprocess
-        # path_or_buf="/home/yizhak/Research/Code/CEGAR_NN/AR_results/marabou/2019-10-22/outfile_df2json/df_all".format(exp_result_dirname))
+    # long no preprocess
+    # path_or_buf="/home/yizhak/Research/Code/CEGAR_NN/AR_results/marabou/2019-10-22/outfile_df2json/df_all".format(exp_result_dirname))
     # marabou_df = pd.read_json(
     #     path_or_buf="/tmp/union_exp_dfs/marabou/df_all")
     return marabou_df
@@ -77,7 +75,6 @@ def read_dfs(exp_result_dirname):
     return marabou_df, cegarabou_df
 
 
-
 def print_num_of_refine_sequences(df):
     print(f"num_of_refine_steps mean={df.num_of_refine_steps.mean()}")
     print(f"num_of_refine_steps median={df.num_of_refine_steps.median()}")
@@ -86,8 +83,8 @@ def print_num_of_refine_sequences(df):
 def print_abstraction_time(df):
     print(f"abstraction_time mean={df.abstraction_time.mean()}")
     print(f"abstraction_time median={df.abstraction_time.median()}")
-    print(f"abstraction_percent mean={(df.abstraction_time/df.total_ar_query_time).mean()}")
-    print(f"abstraction_percent median={(df.abstraction_time/df.total_ar_query_time).median()}")
+    print(f"abstraction_percent mean={(df.abstraction_time / df.total_ar_query_time).mean()}")
+    print(f"abstraction_percent median={(df.abstraction_time / df.total_ar_query_time).median()}")
 
 
 def print_refinement_time(df):
@@ -99,11 +96,12 @@ def print_refinement_time(df):
         df.refine_sequence_times.apply(lambda l: sum(l))
 
     print(f"sum_refine_sequence_times.mean="
-    f"{(df.sum_refine_sequence_times*df.num_of_refine_steps/df.num_of_refine_steps.sum()).mean()}")
+          f"{(df.sum_refine_sequence_times * df.num_of_refine_steps / df.num_of_refine_steps.sum()).mean()}")
     print(f"sum_refine_sequence_times.median="
-    f"{(df.sum_refine_sequence_times*df.num_of_refine_steps/df.num_of_refine_steps.sum()).median()}")
+          f"{(df.sum_refine_sequence_times * df.num_of_refine_steps / df.num_of_refine_steps.sum()).median()}")
     print(f"sum_refine_sequence_times_percent mean={(df.sum_refine_sequence_times / df.total_ar_query_time).mean()}")
-    print(f"sum_refine_sequence_times_percent median={(df.sum_refine_sequence_times / df.total_ar_query_time).median()}")
+    print(
+        f"sum_refine_sequence_times_percent median={(df.sum_refine_sequence_times / df.total_ar_query_time).median()}")
 
 
 def print_sum_ar_times(df):

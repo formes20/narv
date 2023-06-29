@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import random
 from typing import List, Dict
 

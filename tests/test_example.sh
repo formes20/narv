@@ -1,1 +1,1 @@
-python3 python3 ../narv.py -nn 1_1 -pid adversarial_0 -m marabou_with_ar -a global -r global
+python3 ../narv.py -nn 1_1 -pid adversarial_0 -m marabou_with_ar -a global -r global

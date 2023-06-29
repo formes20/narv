@@ -1,0 +1,7 @@
+__pycache__
+*.egg-info
+*.log
+.trace_graph
+
+./idea/
+./results

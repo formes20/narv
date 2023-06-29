@@ -1,5 +1,3 @@
-#/usr/bin/python3
-
 """
 run one experiment - query cegarabou engine:
 calculate if property (p1 or p2) is sat/unsat in a net which is represented by a given .nnet formatted file
@@ -10,7 +8,6 @@ example of usage: python3 -f ACASXU_run2a_1_8_batch_2000.nnet -a heuristic -r ce
 """
 
 # external imports
-
 import sys
 import os
 #sys.path.append("/CEGAR_NN")

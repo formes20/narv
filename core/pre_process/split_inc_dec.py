@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from core.configuration.consts import (
     VERBOSE, FIRST_INC_DEC_LAYER
 )
@@ -38,8 +36,9 @@ from core.data_structures.Edge import Edge
 #         node.out_edges = node.new_out_edges
 #         del node.new_out_edges
 #     print(count)
-def adjust_layer_after_split_inc_dec(network:Network,
-                                     layer_index:int=FIRST_INC_DEC_LAYER):
+
+def adjust_layer_after_split_inc_dec(network: Network,
+                                     layer_index: int = FIRST_INC_DEC_LAYER):
     cur_layer = network.layers[layer_index]
     next_layer = network.layers[layer_index + 1]
     count = 0
@@ -50,7 +49,7 @@ def adjust_layer_after_split_inc_dec(network:Network,
     for node in cur_layer.nodes:
         for out_edge in node.out_edges:
             for suffix in ["_inc", "_dec"]:
-                linked_node = network.name2node_map.get(out_edge.dest+suffix,None)
+                linked_node = network.name2node_map.get(out_edge.dest + suffix, None)
                 if linked_node:
                     weight = out_edge.weight
                     edge = Edge(node.name, linked_node.name, weight)
@@ -58,9 +57,10 @@ def adjust_layer_after_split_inc_dec(network:Network,
                     linked_node.in_edges.append(edge)
                     count += 1
         node.out_edges = node.new_out_edges
-    print(count)    
+    print(count)
 
-def preprocess_split_inc_dec(network:Network) -> None:
+
+def preprocess_split_inc_dec(network: Network) -> None:
     """
     split net nodes to increasing/decreasing nodes
     preprocess all layers except input layer (from last to first)

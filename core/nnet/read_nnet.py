@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import import_marabou
 from maraboupy import MarabouNetworkNNet
@@ -22,6 +20,7 @@ def network_from_nnet_file(nnet_filename: str) -> Network:
     :return: Network object
     """
     # read nnetfile into Marabou Network
+    # It's also feasible for MNIST networks
     acasxu_net = MarabouNetworkNNet.MarabouNetworkNNet(filename=nnet_filename)
 
     # list of layers, layer include list of nodes, node include list of Edge-s
@@ -30,7 +29,7 @@ def network_from_nnet_file(nnet_filename: str) -> Network:
     # edges[i] is list of list of edges between layer i to layer i+1
     # edges[i][j] is list of out edges from node j in layer i
     # edges[i][j][k] is the k'th out edge of "node" j in "layer" i
-    for i in range(len(acasxu_net.layerSizes)-1):
+    for i in range(len(acasxu_net.layerSizes) - 1):
         # add cell for each layer, includes all edges in that layer
         edges.append([])
         for j in range(len(acasxu_net.weights[i])):
@@ -39,22 +38,22 @@ def network_from_nnet_file(nnet_filename: str) -> Network:
             for k in range(len(acasxu_net.weights[i][j])):
                 # acasxu.weights include input edges, so the edge is from the
                 # k'th node in layer i to the j'th node in layer i+1
-                src = "x_{}_{}".format(i,k)
-                dest = "x_{}_{}".format(i+1,j)
+                src = "x_{}_{}".format(i, k)
+                dest = "x_{}_{}".format(i + 1, j)
                 weight = acasxu_net.weights[i][j][k]
                 edge = Edge(src=src, dest=dest, weight=weight)
                 edges[i][j].append(edge)
                 # print(i,j,k,mn.weights[i][j][k])
 
     # validate sizes
-    assert(len(acasxu_net.weights) == len(edges))
-    for i in range(len(acasxu_net.layerSizes)-1):
-        assert(len(acasxu_net.weights[i]) == len(edges[i]))
+    assert (len(acasxu_net.weights) == len(edges))
+    for i in range(len(acasxu_net.layerSizes) - 1):
+        assert (len(acasxu_net.weights[i]) == len(edges[i]))
         for j in range(len(acasxu_net.weights[i])):
-            assert(len(acasxu_net.weights[i][j]) == len(edges[i][j]))
+            assert (len(acasxu_net.weights[i][j]) == len(edges[i][j]))
             for k in range(len(acasxu_net.weights[i][j])):
                 if acasxu_net.weights[i][j][k] != edges[i][j][k].weight:
-                    print("wrong edges: {},{},{}".format(i,j,k))
+                    print("wrong edges: {},{},{}".format(i, j, k))
                     assert False
 
     nodes = []  # list of list of ARNode instances
@@ -64,7 +63,7 @@ def network_from_nnet_file(nnet_filename: str) -> Network:
     for i, layer in enumerate(edges):
         nodes.append([])  # add layer
         for j, node in enumerate(layer):
-            for k,edge in enumerate(node):
+            for k, edge in enumerate(node):
                 src_name = edge.src
                 if src_name not in name2node_map.keys():
                     src_arnode = ARNode(name=src_name,
@@ -73,9 +72,9 @@ def network_from_nnet_file(nnet_filename: str) -> Network:
                                         out_edges=[],
                                         activation_func=relu,
                                         bias=0.0,  # assigned later
-                                        upper_bound =0.0,
-                                        lower_bound = 0.0
-                                       )
+                                        upper_bound=0.0,
+                                        lower_bound=0.0
+                                        )
                     nodes[i].append(src_arnode)
                     name2node_map[src_name] = src_arnode
 
@@ -93,25 +92,25 @@ def network_from_nnet_file(nnet_filename: str) -> Network:
                                      out_edges=[],
                                      activation_func=relu,
                                      bias=0.0,  # assigned later
-                                     upper_bound =0.0,
-                                     lower_bound = 0.0
-                                    
-                                    )
-                nodes[i+1].append(dest_arnode)
+                                     upper_bound=0.0,
+                                     lower_bound=0.0
+
+                                     )
+                nodes[i + 1].append(dest_arnode)
                 name2node_map[dest_name] = dest_arnode
 
     # after all nodes instances exist, add input and output edges
-    for i,layer in enumerate(edges):  # layer is list of list of edges
-        for j,node in enumerate(layer):  # node is list of edges
-            for k,edge in enumerate(node):  # edge is Edge instance
-                #print (i,j,k)
+    for i, layer in enumerate(edges):  # layer is list of list of edges
+        for j, node in enumerate(layer):  # node is list of edges
+            for k, edge in enumerate(node):  # edge is Edge instance
+                # print (i, j, k)
                 src_node = name2node_map[edge.src]
                 dest_node = name2node_map[edge.dest]
                 src_node.out_edges.append(edge)
                 dest_node.in_edges.append(edge)
 
     layers = []
-    for i,layer in enumerate(nodes):
+    for i, layer in enumerate(nodes):
         if i == 0:
             type_name = "input"
         elif i == len(acasxu_net.layerSizes) - 1:
@@ -128,10 +127,11 @@ def network_from_nnet_file(nnet_filename: str) -> Network:
     net = Network(layers=layers, weights=acasxu_net.weights, biases=acasxu_net.biases, acasxu_net=acasxu_net)
 
     # for i,biases in enumerate(acasxu_net.biases):
-        # layer = net.layers[i+1]
-        # for j,node in enumerate(layer.nodes):
-        #     node.bias = biases[j]
+    # layer = net.layers[i+1]
+    # for j,node in enumerate(layer.nodes):
+    #     node.bias = biases[j]
     return net
+
 
 def network_from_onnx_file(nnet_filename: str) -> Network:
     """
@@ -149,7 +149,7 @@ def network_from_onnx_file(nnet_filename: str) -> Network:
     # edges[i] is list of list of edges between layer i to layer i+1
     # edges[i][j] is list of out edges from node j in layer i
     # edges[i][j][k] is the k'th out edge of "node" j in "layer" i
-    for i in range(len(acasxu_net.layerSizes)-1):
+    for i in range(len(acasxu_net.layerSizes) - 1):
         # add cell for each layer, includes all edges in that layer
         edges.append([])
         for j in range(len(acasxu_net.weights[i])):
@@ -158,22 +158,22 @@ def network_from_onnx_file(nnet_filename: str) -> Network:
             for k in range(len(acasxu_net.weights[i][j])):
                 # acasxu.weights include input edges, so the edge is from the
                 # k'th node in layer i to the j'th node in layer i+1
-                src = "x_{}_{}".format(i,k)
-                dest = "x_{}_{}".format(i+1,j)
+                src = "x_{}_{}".format(i, k)
+                dest = "x_{}_{}".format(i + 1, j)
                 weight = acasxu_net.weights[i][j][k]
                 edge = Edge(src=src, dest=dest, weight=weight)
                 edges[i][j].append(edge)
                 # print(i,j,k,mn.weights[i][j][k])
 
     # validate sizes
-    assert(len(acasxu_net.weights) == len(edges))
-    for i in range(len(acasxu_net.layerSizes)-1):
-        assert(len(acasxu_net.weights[i]) == len(edges[i]))
+    assert (len(acasxu_net.weights) == len(edges))
+    for i in range(len(acasxu_net.layerSizes) - 1):
+        assert (len(acasxu_net.weights[i]) == len(edges[i]))
         for j in range(len(acasxu_net.weights[i])):
-            assert(len(acasxu_net.weights[i][j]) == len(edges[i][j]))
+            assert (len(acasxu_net.weights[i][j]) == len(edges[i][j]))
             for k in range(len(acasxu_net.weights[i][j])):
                 if acasxu_net.weights[i][j][k] != edges[i][j][k].weight:
-                    print("wrong edges: {},{},{}".format(i,j,k))
+                    print("wrong edges: {},{},{}".format(i, j, k))
                     assert False
 
     nodes = []  # list of list of ARNode instances
@@ -183,7 +183,7 @@ def network_from_onnx_file(nnet_filename: str) -> Network:
     for i, layer in enumerate(edges):
         nodes.append([])  # add layer
         for j, node in enumerate(layer):
-            for k,edge in enumerate(node):
+            for k, edge in enumerate(node):
                 src_name = edge.src
                 if src_name not in name2node_map.keys():
                     src_arnode = ARNode(name=src_name,
@@ -192,9 +192,9 @@ def network_from_onnx_file(nnet_filename: str) -> Network:
                                         out_edges=[],
                                         activation_func=relu,
                                         bias=0.0,  # assigned later
-                                        upper_bound =0.0,
-                                        lower_bound = 0.0
-                                       )
+                                        upper_bound=0.0,
+                                        lower_bound=0.0
+                                        )
                     nodes[i].append(src_arnode)
                     name2node_map[src_name] = src_arnode
 
@@ -212,25 +212,25 @@ def network_from_onnx_file(nnet_filename: str) -> Network:
                                      out_edges=[],
                                      activation_func=relu,
                                      bias=0.0,  # assigned later
-                                     upper_bound =0.0,
-                                     lower_bound = 0.0
-                                    
-                                    )
-                nodes[i+1].append(dest_arnode)
+                                     upper_bound=0.0,
+                                     lower_bound=0.0
+
+                                     )
+                nodes[i + 1].append(dest_arnode)
                 name2node_map[dest_name] = dest_arnode
 
     # after all nodes instances exist, add input and output edges
-    for i,layer in enumerate(edges):  # layer is list of list of edges
-        for j,node in enumerate(layer):  # node is list of edges
-            for k,edge in enumerate(node):  # edge is Edge instance
-                #print (i,j,k)
+    for i, layer in enumerate(edges):  # layer is list of list of edges
+        for j, node in enumerate(layer):  # node is list of edges
+            for k, edge in enumerate(node):  # edge is Edge instance
+                # print (i,j,k)
                 src_node = name2node_map[edge.src]
                 dest_node = name2node_map[edge.dest]
                 src_node.out_edges.append(edge)
                 dest_node.in_edges.append(edge)
 
     layers = []
-    for i,layer in enumerate(nodes):
+    for i, layer in enumerate(nodes):
         if i == 0:
             type_name = "input"
         elif i == len(acasxu_net.layerSizes) - 1:
@@ -247,10 +247,11 @@ def network_from_onnx_file(nnet_filename: str) -> Network:
     net = Network(layers=layers, weights=acasxu_net.weights, biases=acasxu_net.biases, acasxu_net=acasxu_net)
 
     # for i,biases in enumerate(acasxu_net.biases):
-        # layer = net.layers[i+1]
-        # for j,node in enumerate(layer.nodes):
-        #     node.bias = biases[j]
+    # layer = net.layers[i+1]
+    # for j,node in enumerate(layer.nodes):
+    #     node.bias = biases[j]
     return net
+
 
 def get_all_acas_nets(indices=None):
     """
@@ -259,7 +260,7 @@ def get_all_acas_nets(indices=None):
     """
     nnet_dir = PATH_TO_MARABOU_APPLICATIONS_ACAS_EXAMPLES
     l = []
-    for i,filename in enumerate(os.listdir(nnet_dir)):
+    for i, filename in enumerate(os.listdir(nnet_dir)):
         if i not in indices:
             continue
         nnet_filename = os.path.join(nnet_dir, filename)

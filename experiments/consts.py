@@ -35,9 +35,6 @@ EXP_PARAMS = {
     "L": [100, 500]
 }
 
-# BEST_CEGARABOU_METHODS = {}
-EXP_PARAMS = {}
-
 map_to_formal_names = {
     "_A_complete_": "Abstraction to Saturation",
     "_A_heuristic_alg2_": "Indicator Guided Abstraction",

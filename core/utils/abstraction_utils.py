@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from typing import Dict, Tuple, Callable
 from core.configuration.consts import (
     INT_MAX, INT_MIN, VERBOSE, FIRST_ABSTRACT_LAYER
@@ -9,7 +7,7 @@ from core.data_structures.Edge import Edge
 from core.data_structures.ARNode import ARNode
 
 
-def choose_weight_func(node:ARNode, dest:ARNode) \
+def choose_weight_func(node: ARNode, dest: ARNode) \
         -> Tuple[Callable[[float], float], int]:
     """
     :param node: ARNode, current node
@@ -21,12 +19,12 @@ def choose_weight_func(node:ARNode, dest:ARNode) \
         ("inc"): (max, INT_MIN),
         ("dec"): (min, INT_MAX)
     }
-    #positivity = "neg" if ("neg" in node.name) else "pos"
+    # positivity = "neg" if ("neg" in node.name) else "pos"
     return d[(dest.ar_type)]
 
 
-def finish_abstraction(network, next_layer_part2union:Dict,
-                       verbose:bool=VERBOSE) -> None:
+def finish_abstraction(network, next_layer_part2union: Dict,
+                       verbose: bool = VERBOSE) -> None:
     # fix input layer edges dest names (to fit layer 1 test_abstraction results)
     fix_prev_layer_out_edges_dests(network=network,
                                    prev_layer_index=FIRST_ABSTRACT_LAYER - 1,
@@ -50,8 +48,8 @@ def finish_abstraction(network, next_layer_part2union:Dict,
         debug_print("finish_abstraction finished")
 
 
-def fix_prev_layer_out_edges_dests(network, prev_layer_index:int,
-                                   updated_names:Dict) -> None:
+def fix_prev_layer_out_edges_dests(network, prev_layer_index: int,
+                                   updated_names: Dict) -> None:
     """
     fix the dest names of out edges of nodes in a layer to the names of the
     updated node names in the next layer
@@ -65,7 +63,8 @@ def fix_prev_layer_out_edges_dests(network, prev_layer_index:int,
         for out_edge in node.out_edges:
             out_edge.dest = updated_names.get(out_edge.dest, out_edge.dest)
 
-def fix_prev_layer_min_max_edges(network, prev_layer_index:int) -> None:
+
+def fix_prev_layer_min_max_edges(network, prev_layer_index: int) -> None:
     prev_layer = network.layers[prev_layer_index]
     cur_layer = network.layers[prev_layer_index + 1]
     node2dest_edges = {node.name: {} for node in prev_layer.nodes}
@@ -107,7 +106,7 @@ def fix_prev_layer_min_max_edges(network, prev_layer_index:int) -> None:
             del node.new_in_edges
 
 
-def fix_cur_layer_in_edges(network, layer_index:int) -> None:
+def fix_cur_layer_in_edges(network, layer_index: int) -> None:
     assert layer_index != 0
     layer = network.layers[layer_index]
     for node in layer.nodes:

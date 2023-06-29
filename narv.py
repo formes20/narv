@@ -1,41 +1,25 @@
-#/usr/bin/python3
-
-"""
-run one experiment - query cegarabou engine:
-calculate if property (p1 or p2) is sat/unsat in a net which is represented by a given .nnet formatted file
-write to result file the result of the query and data on the calculation process - times, sizes, etc. .
-
-usage: python3 -f <nnet_filename> -a <abstraction_type> -r <test_refinement type> -e <epsilon value> -l <lower_bound> -o? -p?
-example of usage: python3 -f ACASXU_run2a_1_8_batch_2000.nnet -a heuristic -r cegar -e 1e-5 -l 25000 -o -p -s 100
-"""
-
-# external imports
-
 import sys
 import os
-#sys.path.append("/CEGAR_NN")
-#sys.path.append("/guazai/pyfile")
-
 import json
 import copy
 import time
 import argparse
 import pandas as pd
-#import timeout_decorator
-# internal imports
+# import timeout_decorator
+
 from import_marabou import dynamically_import_marabou
 from core.configuration import consts
 from experiments.consts import BEST_CEGARABOU_METHODS
 from core.utils.debug_utils import debug_print
-from core.utils.verification_properties_utils import (
-    get_test_property_acas, is_satisfying_assignment, TEST_PROPERTY_ACAS
-)
-from core.pre_process.pre_process_mine import do_process_before,do_process_after
+from core.utils.verification_properties_utils import (get_test_property_acas, is_satisfying_assignment, TEST_PROPERTY_ACAS)
+from core.pre_process.pre_process_mine import do_process_before, do_process_after
 from core.abstraction.global_abstraction import global_abstraction_based_on_contribution
 from core.abstraction.kmeans_abstraction import kmeans_abstraction_based_on_contribution
 import _pickle as cPickle
 from core.utils.propagation import propagation_net
 from core.utils.network2rlv import network2rlv
+
+
 def generate_results_filename(
         nnet_filename, property_id, mechanism, refinement_type,
         abstraction_type, refinement_sequence, abstraction_sequence
@@ -52,12 +36,30 @@ def generate_results_filename(
                       "DATETIME_{}".format(consts.cur_time_str)
                       ])
 
-#@timeout_decorator.timeout(72000)
+
+# @timeout_decorator.timeout(72000)
 def one_experiment(
         nnet_filename, refinement_type, abstraction_type, mechanism,
         refinement_sequence, abstraction_sequence, results_directory,
         property_id=consts.PROPERTY_ID, verbose=consts.VERBOSE
 ):
+    """
+
+    Args:
+        nnet_filename:
+        refinement_type: "cegar" or "global"
+        abstraction_type:
+        mechanism: "marabou" otherwise marabou_with_ar
+        refinement_sequence:
+        abstraction_sequence:
+        results_directory:
+        property_id:
+        verbose:
+
+    Returns:
+        res: experiment results
+
+    """
     test_property = get_test_property_acas(property_id)
     dynamically_import_marabou(query_type=test_property["type"])
     from core.nnet.read_nnet import network_from_nnet_file
@@ -65,10 +67,9 @@ def one_experiment(
     from core.abstraction.naive import abstract_network
     from core.abstraction.alg2 import heuristic_abstract_alg2
     from core.abstraction.random_abstract import heuristic_abstract_random
-    # from core.abstraction.clustering_abstract import \
-    #     heuristic_abstract_clustering
+    # from core.abstraction.clustering_abstract import heuristic_abstract_clustering
     from core.utils.marabou_query_utils import reduce_property_to_basic_form, get_query
-    from core.refinement.refine import refine,global_refine
+    from core.refinement.refine import refine, global_refine
     if nnet_filename == "ACASXU_run2a_mnist100_batch_2000.nnet":
         fullname = "./oval/mnist-net_256x2.nnet"
     elif nnet_filename == "ACASXU_run2a_mnist300_batch_2000.nnet":
@@ -76,11 +77,11 @@ def one_experiment(
     elif nnet_filename == "ACASXU_run2a_cifar400_batch_2000.nnet":
         fullname = "./oval/cifar4.nnet"
     elif nnet_filename == "ACASXU_run2a_cifar600_batch_2000.nnet":
-        fullname = "./oval/cifar6.nnet"        
+        fullname = "./oval/cifar6.nnet"
     else:
         example_nets_dir_path = consts.PATH_TO_MARABOU_APPLICATIONS_ACAS_EXAMPLES
         fullname = os.path.join(example_nets_dir_path, nnet_filename)
-    sat = False
+
     if not os.path.exists(results_directory):
         os.makedirs(results_directory)
     results_filename = generate_results_filename(nnet_filename=nnet_filename,
@@ -100,12 +101,13 @@ def one_experiment(
     # return
     print(f"size={len(net.layers)}")
     net, test_property = reduce_property_to_basic_form(network=net, test_property=test_property)
-    network2rlv(net,test_property,"test.rlv")
+    # network2rlv(net, test_property, "test.rlv")
     counter_example = []
-    # mechanism is vanilla marabou
+    sat = False
+
+    # if mechanism is vanilla marabou
     if mechanism == "marabou":
         print("query using vanilla Marabou")
-
         print("net.get_general_net_data()")
         print(net.get_general_net_data())
 
@@ -150,31 +152,33 @@ def one_experiment(
                 fw.write("{}: {}\n".format(k, v))
         return res
 
-    # mechanism is marabou_with_ar
+    # otherwise mechanism is marabou_with_ar
     orig_net = copy.deepcopy(net)
     print("query using Marabou with AR")
     t2 = time.time()
-    #do_process_before(net,property_id)
+    # do_process_before(net,property_id)
     random_input = [1]
     if abstraction_type == "global":
-        net_before,random_input,processed_net,sat,actions = global_abstraction_based_on_contribution(network=net,test_property = test_property)
-        #print(net_before)
-        net_before_p = cPickle.loads(cPickle.dumps(net_before,-1))
-        #print('net_after-propagation')
+        net_before, random_input, processed_net, sat, actions = \
+            global_abstraction_based_on_contribution(network=net, test_property=test_property)
+        # print(net_before)
+        net_before_p = cPickle.loads(cPickle.dumps(net_before, -1))
+        # print('net_after-propagation')
         propagation_net(net_before)
         net = net_before
-        #print(net_before)
+        # print(net_before)
     elif abstraction_type == "kmeans":
-        net_before,random_input,processed_net,sat,actions = kmeans_abstraction_based_on_contribution(network=net,test_property = test_property)
-        #print(net_before)
-        net_before_p = cPickle.loads(cPickle.dumps(net_before,-1))
-        #print('net_after-propagation')
+        net_before, random_input, processed_net, sat, actions = \
+            kmeans_abstraction_based_on_contribution(network=net, test_property=test_property)
+        # print(net_before)
+        net_before_p = cPickle.loads(cPickle.dumps(net_before, -1))
+        # print('net_after-propagation')
         propagation_net(net_before)
         net = net_before
     elif abstraction_type == "complete":
-        net,processed_net = abstract_network(net)
+        net, processed_net = abstract_network(net)
     elif abstraction_type == "heuristic_alg2":
-        net,sat = heuristic_abstract_alg2(
+        net, sat = heuristic_abstract_alg2(
             network=net,
             test_property=test_property,
             sequence_length=abstraction_sequence
@@ -193,7 +197,8 @@ def one_experiment(
     #     )
     else:
         raise NotImplementedError("unknown abstraction")
-    #print(net)
+
+    # print(net)
     if (not sat) and random_input:
         abstraction_time = time.time() - t2
         num_of_refine_steps = 0
@@ -216,7 +221,7 @@ def one_experiment(
             ar_times.append(t5 - t4)
             ar_sizes.append(net.get_general_net_data()["num_nodes"])
             # if verbose:
-            print("query time after A and {} R steps is {}".format(num_of_refine_steps, t5-t4))
+            print("query time after A and {} R steps is {}".format(num_of_refine_steps, t5 - t4))
             debug_print(net.get_general_net_data())
             if query_result == "UNSAT":
                 # if always y'<3.99 then also always y<3.99
@@ -227,7 +232,7 @@ def one_experiment(
                 if verbose:
                     print("SAT (have to check example on original net)")
                     print(vars1)
-                #print(vars1)
+                # print(vars1)
                 # debug_print(f'vars1={vars1}')
                 # st = time.time()
                 # orig_net_output = orig_net.evaluate(vars1)
@@ -252,7 +257,7 @@ def one_experiment(
                                             test_property=test_property,
                                             output=orig_net_output,
                                             variables2nodes=variables2nodes):
-                    
+
                     if verbose:
                         print("property holds also in orig - SAT (finish)")
                     counter_example = vars1
@@ -268,7 +273,7 @@ def one_experiment(
                     # refine until all spurious examples are satisfied
                     # since all spurious examples are satisfied in the original
                     # network, the loop stops until net will be fully refined
-                    #print(vars1)
+                    # print(vars1)
                     example = vars1
                     if abstraction_type != "heuristic_alg2":
                         ori_var2val = processed_net.evaluate(example)
@@ -279,16 +284,17 @@ def one_experiment(
                         if refinement_type == "cegar":
                             debug_print("cegar")
                             net = refine(network=net,
-                                        sequence_length=refinement_sequence,
-                                        example=vars1)
+                                         sequence_length=refinement_sequence,
+                                         example=vars1)
                         # else:
                         #     debug_print("weight_based")
                         #     net = refine(network=net,
                         #                  sequence_length=refinement_sequence)
                         elif refinement_type == "global":
                             debug_print("global")
-                            net = global_refine(network=net_before_p, processed_net=processed_net ,ori_var2val=ori_var2val, actions=actions, example=vars1)
-                            
+                            net = global_refine(network=net_before_p, processed_net=processed_net,
+                                                ori_var2val=ori_var2val, actions=actions, example=vars1)
+
                         # after refining, check if the current spurious example is
                         # already not a counter example (i.e. not satisfied in the
                         # refined network). stop if not satisfied, continue if yes
@@ -301,13 +307,13 @@ def one_experiment(
                                 test_property=test_property,
                                 output=net_output,
                                 variables2nodes=variables2nodes):
-                            net_before_p = cPickle.loads(cPickle.dumps(net,-1))
+                            net_before_p = cPickle.loads(cPickle.dumps(net, -1))
                             propagation_net(net)
                             break
-                    #print(net)
+                    # print(net)
                     t_cur_refine_end = time.time()
                     refine_sequence_times.append(t_cur_refine_end - t_cur_refine_start)
-    elif sat :
+    elif sat:
         query_result = "SAT"
         abstraction_time = 0
         ar_times = [0.0]
@@ -329,7 +335,7 @@ def one_experiment(
         print("ar query time = {}".format(total_ar_time))
 
     # time to check property on the last network in CEGAR
-    #last_net_ar_time = t3 - t4
+    last_net_ar_time = t3 - t4
     if verbose:
         print("last ar net query time = {}".format(last_net_ar_time))
 
@@ -344,7 +350,7 @@ def one_experiment(
         ("ar_sizes", json.dumps(ar_sizes)),
         ("refine_sequence_times", json.dumps(refine_sequence_times)),
         ("last_net_data", json.dumps(net.get_general_net_data())),
-        ("counter-example",counter_example)
+        ("counter-example", counter_example)
         # ("last_query_time", last_net_ar_time)
     ]
     # generate dataframe from result
@@ -352,18 +358,18 @@ def one_experiment(
     df.to_json(os.path.join(results_directory, "df_" + results_filename))
     # write result to output file
     with open(os.path.join(results_directory, results_filename), "w") as fw:
-        fw.write("-"*80)
+        fw.write("-" * 80)
         fw.write("parameters:")
-        fw.write("-"*80)
+        fw.write("-" * 80)
         fw.write("\n")
         # for arg in vars(args):
         #     fw.write("{}: {}\n".format(arg, getattr(args, arg)))
-        fw.write("+"*80)
+        fw.write("+" * 80)
         fw.write("results:")
-        fw.write("+"*80)
+        fw.write("+" * 80)
         fw.write("\n")
-        for (k,v) in res:
-            fw.write("{}: {}\n".format(k,v))
+        for (k, v) in res:
+            fw.write("{}: {}\n".format(k, v))
     return res
 
 
@@ -373,20 +379,20 @@ def parse_args():
     parser.add_argument("-nn", "--net_number",
                         dest="net_number",
                         default="2_8")
-                        #choices=[f"{x}_{y}" for x in range(1,6) for y in range(1, 10)])
+    # choices=[f"{x}_{y}" for x in range(1,6) for y in range(1, 10)])
     parser.add_argument("-pid", "--property_id",
                         dest="property_id",
-                        default="adversarial_0", # consts.PROPERTY_ID,
+                        default="adversarial_0",  # consts.PROPERTY_ID
                         # choices=TEST_PROPERTY_ACAS.keys(),
                         type=str)
     parser.add_argument("-m", "--mechanism",
                         dest="mechanism",
-                        default="marabou_with_ar",  #"marabou_with_ar",
+                        default="marabou_with_ar",  # "marabou_with_ar",
                         choices=["marabou", "marabou_with_ar"],
                         type=str)
     parser.add_argument("-a", "--abstraction_type",
                         dest="abstraction_type",
-                        default="naive", #BEST_CEGARABOU_METHODS["A"],
+                        default="naive",  # BEST_CEGARABOU_METHODS["A"],
                         choices=["naive", "alg2", "random", "clustering", "global", "kmeans"])
     parser.add_argument("-r", "--refinement_type",
                         dest="refinement_type",
@@ -402,7 +408,6 @@ def parse_args():
                         type=int,
                         default=BEST_CEGARABOU_METHODS["RS"],
                         choices=[50, 100])
-
     parser.add_argument("-d", "--results_directory",
                         dest="results_directory",
                         default=consts.results_directory)
@@ -423,72 +428,75 @@ def parse_args():
 
     return args
 
-def unpickle(file, j):
-    import pickle
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
-        input = {}
-        for i in range(3072):
-            input[i] = float(dict[b'data'][j][i]/255)
-        label = dict[b'labels'][j]
-    return input, label, dict[b'data'][j]
 
-def test_accuraccy(net):
-    count = 0
-    for i in range(100):
-        input,label,input_raw = unpickle("./oval/cifar-10-python/cifar-10-batches-py/data_batch_1",i)
-        output = net.speedy_evaluate(input).tolist()
-        index = output.index(max(output))
-        if(index == label):
-            count += 1
-            property2line(input_raw, label, count)
-        print(label,index)
-    print("accuraccy", count/100)
-
-def property2line(input, label, count):
-    with open('./cifar_properties/image4_'+str(count),'w+') as f:
-        delta = 0.004
-        index = 0
-        f.write(f'"adversarial_{str(count)}":')
-        f.write(r"{")
-        # input
-        f.write(f'\t"type": "adversarial",')
-        f.write(f'\t"input":')
-        f.write('\t\t[')
-        for pixel in input:
-            if pixel != "":
-                pixel_val = float(pixel)/255
-                if pixel_val <= delta:
-                    pixel_lower = 0
-                else:
-                    pixel_lower = pixel_val - delta
-                pixel_upper = pixel_val + delta
-                if pixel_upper > 1:
-                    pixel_upper = 1
-                f.write(f'\t\t\t({index},')
-                f.write(r"{")
-                f.write(f'"Lower": {pixel_lower}, "Upper": {pixel_upper}')
-                f.write(r"}),")
-                index += 1
-        f.write(f'\t\t],')
-        f.write(f'\t"output":')
-        f.write('\t\t[')
-        for j in range(10):
-            f.write(f'\t\t\t({j},')
-            f.write(r"{")
-            if j == label:
-                f.write(f'"Lower": {-1}, "Upper": {0}')
-            else:    
-                f.write(f'"Lower": {0}, "Upper": {0}')
-            f.write(r"}),")
-        f.write(f'\t\t]')
-        f.write(r"},")
+# def unpickle(file, j):
+#     import pickle
+#     with open(file, 'rb') as fo:
+#         dict = pickle.load(fo, encoding='bytes')
+#         input = {}
+#         for i in range(3072):
+#             input[i] = float(dict[b'data'][j][i] / 255)
+#         label = dict[b'labels'][j]
+#     return input, label, dict[b'data'][j]
+#
+#
+# def test_accuraccy(net):
+#     count = 0
+#     for i in range(100):
+#         input, label, input_raw = unpickle("./oval/cifar-10-python/cifar-10-batches-py/data_batch_1", i)
+#         output = net.speedy_evaluate(input).tolist()
+#         index = output.index(max(output))
+#         if (index == label):
+#             count += 1
+#             property2line(input_raw, label, count)
+#         print(label, index)
+#     print("accuraccy", count / 100)
+#
+#
+# def property2line(input, label, count):
+#     with open('./cifar_properties/image4_' + str(count), 'w+') as f:
+#         delta = 0.004
+#         index = 0
+#         f.write(f'"adversarial_{str(count)}":')
+#         f.write(r"{")
+#         # input
+#         f.write(f'\t"type": "adversarial",')
+#         f.write(f'\t"input":')
+#         f.write('\t\t[')
+#         for pixel in input:
+#             if pixel != "":
+#                 pixel_val = float(pixel) / 255
+#                 if pixel_val <= delta:
+#                     pixel_lower = 0
+#                 else:
+#                     pixel_lower = pixel_val - delta
+#                 pixel_upper = pixel_val + delta
+#                 if pixel_upper > 1:
+#                     pixel_upper = 1
+#                 f.write(f'\t\t\t({index},')
+#                 f.write(r"{")
+#                 f.write(f'"Lower": {pixel_lower}, "Upper": {pixel_upper}')
+#                 f.write(r"}),")
+#                 index += 1
+#         f.write(f'\t\t],')
+#         f.write(f'\t"output":')
+#         f.write('\t\t[')
+#         for j in range(10):
+#             f.write(f'\t\t\t({j},')
+#             f.write(r"{")
+#             if j == label:
+#                 f.write(f'"Lower": {-1}, "Upper": {0}')
+#             else:
+#                 f.write(f'"Lower": {0}, "Upper": {0}')
+#             f.write(r"}),")
+#         f.write(f'\t\t]')
+#         f.write(r"},")
 
 
 if __name__ == '__main__':
     args = parse_args()
     # run experiment
-    nnet_general_filename = "ACASXU_run2a_{}_batch_2000.nnet"
+    nnet_general_filename = "ACASXU_experimental_v2a_{}.nnet"
     one_exp_res = one_experiment(
         nnet_filename=nnet_general_filename.format(args.net_number),
         property_id=args.property_id,
@@ -497,6 +505,5 @@ if __name__ == '__main__':
         abstraction_type=args.abstraction_type,
         refinement_sequence=args.refinement_sequence,
         abstraction_sequence=args.abstraction_sequence,
-        results_directory=args.results_directory)
+        results_directory="./results/")
     debug_print(one_exp_res)
-

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from core.data_structures.Network import Network
 from core.utils.alg2_utils import has_violation, get_limited_random_inputs
 from core.pre_process.pre_process import preprocess
@@ -12,11 +10,11 @@ from core.configuration.consts import (
 
 def heuristic_abstract_alg2(
         network: Network,
-        test_property:dict,
+        test_property: dict,
         random_inputs={},
-        do_preprocess:bool=True,
-        sequence_length:int=50,
-        verbose:bool=VERBOSE
+        do_preprocess: bool = True,
+        sequence_length: int = 50,
+        verbose: bool = VERBOSE
 ) -> Network:
     print("1111111111111111111111111111111111111111111111111111111111111111111111")
     """
@@ -41,10 +39,10 @@ def heuristic_abstract_alg2(
             input_size=input_size,
             test_property=test_property
         )
-    #print(random_inputs)
-    #print(random_inputs)
+    # print(random_inputs)
+    # print(random_inputs)
     nodes2edge_between_map = network.get_nodes2edge_between_map()
-    #print(nodes2edge_between_map.values())
+    # print(nodes2edge_between_map.values())
     union_pairs = None  # set initial value to verify that the loop's condition holds in the first iteration
     loop_iterations = 0
     # while no violation occurs, continue to abstract
@@ -58,7 +56,7 @@ def heuristic_abstract_alg2(
             prev_layer = network.layers[layer_index]
             # print(i)
             # print(prev_layer)
-            #sleep(10000000)
+            # sleep(10000000)
             layer_couples = layer.get_couples_of_same_ar_type()
             # calc max difference between input edges' weights of couples
             for n1, n2 in layer_couples:
@@ -73,12 +71,12 @@ def heuristic_abstract_alg2(
                     b = 0 if in_edge_n2 is None else in_edge_n2.weight
                     if abs(a - b) > max_diff_n1_n2:
                         max_diff_n1_n2 = abs(a - b)
-                        #print(max_diff_n1_n2)
-                union_pairs.append(([n1, n2], max_diff_n1_n2))                
+                        # print(max_diff_n1_n2)
+                union_pairs.append(([n1, n2], max_diff_n1_n2))
         if union_pairs:  # if union_pairs != []:
             # take the couples whose maximal difference is minimal
             best_sequence_pairs = sorted(union_pairs, key=lambda x: x[1])
-            #print(best_sequence_pairs)
+            # print(best_sequence_pairs)
             cur_abstraction_seq_len = 0
             for (pair, diff) in best_sequence_pairs:
                 if cur_abstraction_seq_len >= sequence_length:
@@ -96,4 +94,4 @@ def heuristic_abstract_alg2(
         sat = True
     print("alg2 operation time")
     print(loop_iterations)
-    return network,sat
+    return network, sat

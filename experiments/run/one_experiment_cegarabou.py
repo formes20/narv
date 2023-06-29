@@ -1,5 +1,3 @@
-#/usr/bin/python3
-
 """
 run one experiment - query cegarabou engine:
 calculate if property (p1 or p2) is sat/unsat in a net which is represented by a given .nnet formatted file
@@ -18,7 +16,7 @@ import argparse
 import pandas as pd
 
 # internal imports
-from core.pre_process.pre_process import  preprocess
+from core.pre_process.pre_process import preprocess
 from core.abstraction.naive import abstract_network
 from core.abstraction.alg2 import heuristic_abstract
 from core.nnet.read_nnet import network_from_nnet_file
@@ -120,7 +118,7 @@ def one_experiment(nnet_filename, is_tiny, refinement_type, abstraction_type,
         ar_times.append(t5 - t4)
         ar_sizes.append(net.get_general_net_data()["num_nodes"])
         if verbose:
-            print("query time after A and {} R steps is {}".format(num_of_refine_steps, t5-t4))
+            print("query time after A and {} R steps is {}".format(num_of_refine_steps, t5 - t4))
         debug_print(net.get_general_net_data())
         if query_result == "UNSAT":
             # if always y'<3.99 then also always y<3.99
@@ -196,18 +194,18 @@ def one_experiment(nnet_filename, is_tiny, refinement_type, abstraction_type,
     df.to_json(os.path.join(results_directory, "df_" + results_filename))
     # write result to output file
     with open(os.path.join(results_directory, results_filename), "w") as fw:
-        fw.write("-"*80)
+        fw.write("-" * 80)
         fw.write("parameters:")
-        fw.write("-"*80)
+        fw.write("-" * 80)
         fw.write("\n")
         for arg in vars(args):
             fw.write("{}: {}\n".format(arg, getattr(args, arg)))
-        fw.write("+"*80)
+        fw.write("+" * 80)
         fw.write("results:")
-        fw.write("+"*80)
+        fw.write("+" * 80)
         fw.write("\n")
-        for (k,v) in res:
-            fw.write("{}: {}\n".format(k,v))
+        for (k, v) in res:
+            fw.write("{}: {}\n".format(k, v))
     return res
 
 

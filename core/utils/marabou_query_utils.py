@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-
 from typing import Tuple, Sized
 
 from maraboupy import MarabouCore
 from maraboupy.Marabou import createOptions
-
 
 from core.configuration.consts import (
     VERBOSE, INT_MAX, SAT_EXIT_CODE, UNSAT_EXIT_CODE, INPUT_LOWER_BOUND,
@@ -41,84 +38,84 @@ def finish_query() -> str:
     return end_query + "\n"
 
 
+def handle_acas_xu_conjunction(net: Sized, test_property) -> Tuple:
+    """
+    The purpose of this function is to support the properties of ACAS XU which
+    include a conjunction of conditions regarding the output
+    This is done by adding two last layers that encodes the conjunction formula
+    using logic formula: X AND Y = NOT(NOT(X) OR NOT(Y)), therefore negate the
+    first equation, sum the results to output node and check the negated
+    property ("Lower" instead "Upper" in acas_xu case) on the output node
+    because the current abstraction code supports abstraction when the property
+    is "Lower", we both negate the weights of the output node in-edges from 1
+    to -1 and change the "Upper" to "Lower" with the negated number (e.g. -4
+    instead of 4)
+    :param net: Network
+    :param test_property: Dict that represents a test_property in ACAS XU form
+    :return: Tuple of updated network and test_property
+    """
 
-# def handle_acas_xu_conjunction(net:Sized, test_property) -> Tuple:
-#     """
-#     The purpose of this function is to support the properties of ACAS XU which
-#     include a conjunction of conditions regarding the output
-#     This is done by adding two last layers that encodes the conjunction formula
-#     using logic formula: X AND Y = NOT(NOT(X) OR NOT(Y)), therefore negate the
-#     first equation, sum the results to output node and check the negated
-#     property ("Lower" instead "Upper" in acas_xu case) on the output node
-#     because the current abstraction code supports abstraction when the property
-#     is "Lower", we both negate the weights of the output node in-edges from 1
-#     to -1 and change the "Upper" to "Lower" with the negated number (e.g. -4
-#     instead of 4)
-#     :param net: Network
-#     :param test_property: Dict that represents a test_property in ACAS XU form
-#     :return: Tuple of updated network and test_property
-#     """
+    # first, add the last hidden layer
+    new_last_hidden_nodes = []
+    for i, formula in enumerate(test_property["output"]):
+        # new_test_property_bounds.append(formula[1])
+        node_name = f"{len(net.layers)}_{i}"
+        formula_out_node = ARNode(name=node_name, ar_type="",
+                                  in_edges=[], out_edges=[])
+        formula_left_size = formula[0]  # e.g ([(1,0), (-1,1)], {"Upper": 0})
+        used_indices = []
+        for formula_part in formula_left_size:
+            node_index = formula_part[1]
+            used_indices.append(node_index)
+            out_edge_weight = formula_part[0]
+            edge = Edge(src=net.layers[-1].nodes[node_index].name,
+                        dest=formula_out_node.name,
+                        weight=out_edge_weight)
+            # print(f"edge={edge}")
+            formula_out_node.in_edges.append(edge)
+            net.layers[-1].nodes[node_index].out_edges.append(edge)
+        unused_indices = list(set(range(len(net.layers[-1].nodes))).difference(used_indices))
+        for j in unused_indices:
+            edge = Edge(src=net.layers[-1].nodes[j].name,
+                        dest=formula_out_node.name,
+                        weight=0.0)
+            # print(f"0 edge={edge}")
+            formula_out_node.in_edges.append(edge)
+            net.layers[-1].nodes[node_index].out_edges.append(edge)
 
-#     # first, add the last hidden layer
-#     new_last_hidden_nodes = []
-#     for i, formula in enumerate(test_property["output"]):
-#         # new_test_property_bounds.append(formula[1])
-#         node_name = f"{len(net.layers)}_{i}"
-#         formula_out_node = ARNode(name=node_name, ar_type="",
-#                                   in_edges=[], out_edges=[])
-#         formula_left_size = formula[0] # e.g ([(1,0), (-1,1)], {"Upper": 0})
-#         used_indices = []
-#         for formula_part in formula_left_size:
-#             node_index = formula_part[1]
-#             used_indices.append(node_index)
-#             out_edge_weight = formula_part[0]
-#             edge = Edge(src=net.layers[-1].nodes[node_index].name,
-#                         dest=formula_out_node.name,
-#                         weight=out_edge_weight)
-#             # print(f"edge={edge}")
-#             formula_out_node.in_edges.append(edge)
-#             net.layers[-1].nodes[node_index].out_edges.append(edge)
-#         unused_indices = list(set(range(len(net.layers[-1].nodes))).difference(used_indices))
-#         for j in unused_indices:
-#             edge = Edge(src=net.layers[-1].nodes[j].name,
-#                         dest=formula_out_node.name,
-#                         weight=0.0)
-#             # print(f"0 edge={edge}")
-#             formula_out_node.in_edges.append(edge)
-#             net.layers[-1].nodes[node_index].out_edges.append(edge)
+        new_last_hidden_nodes.append(formula_out_node)
+        # new_output_layer_nodes.append(formula_out_node)
 
-#         new_last_hidden_nodes.append(formula_out_node)
-#         # new_output_layer_nodes.append(formula_out_node)
+    net.layers[-1].type_name = "hidden"
+    new_last_hidden_layer = Layer(
+        nodes=new_last_hidden_nodes, type_name="hidden")
+    net.layers.append(new_last_hidden_layer)
 
-#     net.layers[-1].type_name = "hidden"
-#     new_last_hidden_layer = Layer(
-#         nodes=new_last_hidden_nodes, type_name="hidden")
-#     net.layers.append(new_last_hidden_layer)
+    # then, append the output layer
+    output_node_name = f"{len(net.layers)}_0"
+    output_node = ARNode(name=output_node_name, activation_func=identity,
+                         ar_type="", in_edges=[], out_edges=[])
+    for node in new_last_hidden_nodes:
+        # edge weights = -1 to implement property negation
+        edge = Edge(src=node.name, dest=output_node.name, weight=-1.0)
+        node.out_edges.append(edge)
+        output_node.in_edges.append(edge)
 
-#     # then, append the output layer
-#     output_node_name = f"{len(net.layers)}_0"
-#     output_node = ARNode(name=output_node_name, activation_func=identity,
-#                          ar_type="", in_edges=[], out_edges=[])
-#     for node in new_last_hidden_nodes:
-#         # edge weights = -1 to implement property negation
-#         edge = Edge(src=node.name, dest=output_node.name, weight=-1.0)
-#         node.out_edges.append(edge)
-#         output_node.in_edges.append(edge)
+    new_output_layer = Layer(nodes=[output_node], type_name="output")
+    net.layers.append(new_output_layer)
 
-#     new_output_layer = Layer(nodes=[output_node], type_name="output")
-#     net.layers.append(new_output_layer)
+    test_property["output"] = [
+        (0, {"Lower": 0})
+    ]
 
-#     test_property["output"] = [
-#         (0, {"Lower": 0})
-#     ]
+    net.generate_name2node_map()
+    net.weights = net.generate_weights()
+    net.biases = net.generate_biases()
+    # from core.visualization.visualize_network import visualize_network
+    # visualize_network(network=net)
+    # print(net)
+    return net, test_property
 
-#     net.generate_name2node_map()
-#     net.weights = net.generate_weights()
-#     net.biases = net.generate_biases()
-#     # from core.visualization.visualize_network import visualize_network
-#     # visualize_network(network=net)
-#     # print(net)
-#     return net, test_property
 
 # def handle_adversarial(net, test_property) -> Tuple:
 #     minimum = 100
@@ -171,6 +168,7 @@ def finish_query() -> str:
 #     net.biases = net.generate_biases()
 #     return net, test_property
 
+
 # FOLLOWING IS FOR MNIST BENCHMARK
 def handle_adversarial(net, test_property) -> Tuple:
     minimum = 100
@@ -181,34 +179,34 @@ def handle_adversarial(net, test_property) -> Tuple:
     minimum_node = net.layers[-1].nodes[minimum_ind]
     new_last_hidden_nodes = []
     print("labeled as {}".format(minimum_ind))
-    #print(list(set(range(len(net.layers[-1].nodes))).difference([minimum_ind])))
+    # print(list(set(range(len(net.layers[-1].nodes))).difference([minimum_ind])))
     for node in net.layers[-2].nodes:
         node.out_edges = []
-    for i,j in enumerate(list(set(range(len(net.layers[-1].nodes))).difference([minimum_ind]))):
-        #print("j"+str(j))
-        node_name = f"x_{len(net.layers)-1}_{i}"
+    for i, j in enumerate(list(set(range(len(net.layers[-1].nodes))).difference([minimum_ind]))):
+        # print("j"+str(j))
+        node_name = f"x_{len(net.layers) - 1}_{i}"
         new_node = ARNode(name=node_name, ar_type="",
-                                  in_edges=[], out_edges=[])
+                          in_edges=[], out_edges=[])
         another_node = net.layers[-1].nodes[j]
-        minimum_in_edges = sorted(minimum_node.in_edges, key=lambda x:x.src)
-        another_in_edges = sorted(another_node.in_edges, key=lambda x:x.src)
-        assert(len(minimum_in_edges) == len(another_in_edges))
+        minimum_in_edges = sorted(minimum_node.in_edges, key=lambda x: x.src)
+        another_in_edges = sorted(another_node.in_edges, key=lambda x: x.src)
+        assert (len(minimum_in_edges) == len(another_in_edges))
         for k, m_edge in enumerate(minimum_in_edges):
             new_node.in_edges.append(
                 Edge(
-                    src = m_edge.src, dest=new_node.name,
-                    weight = (another_in_edges[k].weight - m_edge.weight)
+                    src=m_edge.src, dest=new_node.name,
+                    weight=(another_in_edges[k].weight - m_edge.weight)
                 )
             )
         for node in net.layers[-2].nodes:
             for edge in new_node.in_edges:
                 if edge.src == node.name:
                     node.out_edges.append(edge)
-            #print(len(node.out_edges))
+            # print(len(node.out_edges))
         new_last_hidden_nodes.append(new_node)
     net.layers[-1].type_name = "hidden"
     net.layers[-1].nodes = new_last_hidden_nodes
-    output_node_name = f"x_{len(net.layers)}_0"    
+    output_node_name = f"x_{len(net.layers)}_0"
     output_node = ARNode(name=output_node_name, activation_func=identity,
                          ar_type="", in_edges=[], out_edges=[])
     for node in new_last_hidden_nodes:
@@ -229,6 +227,7 @@ def handle_adversarial(net, test_property) -> Tuple:
     net.biases = net.generate_biases()
     return net, test_property
 
+# Followings are the CEGAR_NN method for ACAS Xu
 
 # def handle_adversarial(net, test_property) -> Tuple:
 #     """
@@ -318,7 +317,7 @@ def reduce_property_to_basic_form(network, test_property) -> Tuple:
     return network, test_property
 
 
-def get_query(network, test_property, verbose:bool=VERBOSE) -> Tuple:
+def get_query(network, test_property, verbose: bool = VERBOSE) -> Tuple:
     """
     @test_property is a property to check in the network, of the form:
     {
@@ -450,16 +449,12 @@ def get_query(network, test_property, verbose:bool=VERBOSE) -> Tuple:
                 for ((src_var, dest_var), weight) in edge2weight.items():
                     equation.addAddend(weight, src_var)
                     if verbose:
-                        print("eq {}: addAddend({}, {})".format(i,
-                                                                weight,
-                                                                src_var))
+                        print("eq {}: addAddend({}, {})".format(i, weight, src_var))
                     if not dest_seen.get(dest_var, False):
                         equation.addAddend(-1, dest_var)
                         dest_seen[dest_var] = True
                         if verbose:
-                            print("eq {}: addAddend({}, {})".format(i,
-                                                                    -1,
-                                                                    dest_var))
+                            print("eq {}: addAddend({}, {})".format(i, -1, dest_var))
             else:
                 if verbose:
                     print(f"layer_index({layer_index})!={FIRST_ABSTRACT_LAYER}")
@@ -468,7 +463,7 @@ def get_query(network, test_property, verbose:bool=VERBOSE) -> Tuple:
                     # in acas_xu_conjunction, the output layer became the third
                     # layer from end, and relu is not applied to its outputs
                     if property_type == "acas_xu_conjunction" and \
-                            layer_index == len(network.layers)-2:
+                            layer_index == len(network.layers) - 2:
                         src_variable = nodes2variables[in_edge.src + "_b"]
                     # in adverserial robustness, the in-edges of the output
                     # layer come from the last hidden which was the previous
@@ -480,9 +475,7 @@ def get_query(network, test_property, verbose:bool=VERBOSE) -> Tuple:
                         src_variable = nodes2variables[in_edge.src + "_f"]
                     equation.addAddend(in_edge.weight, src_variable)
                     if verbose:
-                        print("eq {}: addAddend({}, {})".format(i,
-                                                                in_edge.weight,
-                                                                src_variable))
+                        print("eq {}: addAddend({}, {})".format(i, in_edge.weight, src_variable))
                 dest_variable = nodes2variables.get(in_edge.dest + "_b", None)
                 if dest_variable is None:
                     dest_variable = nodes2variables[in_edge.dest]
@@ -504,8 +497,7 @@ def get_query(network, test_property, verbose:bool=VERBOSE) -> Tuple:
             continue
         # in acas_xu_conjunction, there are no relus in two last hidden layers
         # (the added last hidden layer and the original output layer)
-        if property_type == "acas_xu_conjunction" and \
-                layer_index == len(network.layers)-3:
+        if property_type == "acas_xu_conjunction" and layer_index == len(network.layers) - 3:
             print(f'layer without relus, layer_index={layer_index}')
             # print(f'len(layer.nodes)={len(layer.nodes)}')
             continue
@@ -534,7 +526,7 @@ def get_query(network, test_property, verbose:bool=VERBOSE) -> Tuple:
     # IPython.embed()
     options = createOptions()
     MarabouCore.saveQuery(inputQuery, "/tmp/query.log")
-    vars1, stats1 = MarabouCore.solve(inputQuery, options, "")
+    vars1, stats1 = MarabouCore.solve(inputQuery, options)
     result = 'SAT' if len(vars1) > 0 else 'UNSAT'
     return vars1, stats1, result
 

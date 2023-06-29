@@ -1,12 +1,9 @@
-#!/usr/bin/env python3
-
-# import copy
-
 from core.utils.debug_utils import debug_print
 from core.configuration.consts import VERBOSE, FIRST_POS_NEG_LAYER
 from core.data_structures.Edge import Edge
 from core.data_structures.Network import Network
 import time
+
 
 # def adjust_layer_after_split_pos_neg(network:Network,
 #                                      layer_index: int=
@@ -75,8 +72,8 @@ import time
 #         debug_print("after adjust_layer_after_split_pos_neg()")
 #         print(network)
 
-def adjust_layer_after_split_pos_neg(network:Network,
-                                     layer_index: int=
+def adjust_layer_after_split_pos_neg(network: Network,
+                                     layer_index: int =
                                      FIRST_POS_NEG_LAYER) -> None:
     # debug_print("adjust_layer_after_split_pos_neg")
     cur_layer = network.layers[layer_index]
@@ -89,7 +86,7 @@ def adjust_layer_after_split_pos_neg(network:Network,
     for node in cur_layer.nodes:
         for out_edge in node.out_edges:
             for suffix in ["_pos", "_neg"]:
-                linked_node = network.name2node_map.get(out_edge.dest+suffix,None)
+                linked_node = network.name2node_map.get(out_edge.dest + suffix, None)
                 if linked_node:
                     weight = out_edge.weight
                     edge = Edge(node.name, linked_node.name, weight)
@@ -97,9 +94,10 @@ def adjust_layer_after_split_pos_neg(network:Network,
                     linked_node.in_edges.append(edge)
                     count += 1
         node.out_edges = node.new_out_edges
-    print(count)    
+    print(count)
 
-def preprocess_split_pos_neg(network:Network) -> None:
+
+def preprocess_split_pos_neg(network: Network) -> None:
     """
     split net nodes to nodes with only positive/negative out edges
     preprocess all hidden layers (from last to first), then adjust input
@@ -120,10 +118,9 @@ def preprocess_split_pos_neg(network:Network) -> None:
     #            node.out_edges.append(edge)
     #            splitted_node.in_edges.append(edge)
     t2 = time.time()
-    print("split-time{}".format(t2-t1))
+    print("split-time{}".format(t2 - t1))
     network.generate_name2node_map()
     t3 = time.time()
-    print("name2node-time{}".format(t3-t2))
+    print("name2node-time{}".format(t3 - t2))
     # print(self)
     adjust_layer_after_split_pos_neg(network, layer_index=FIRST_POS_NEG_LAYER)
-

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from collections import Counter
 from itertools import groupby
 
@@ -10,15 +8,17 @@ from core.pre_process.pre_process import preprocess
 from core.utils.debug_utils import debug_print
 from core.utils.abstraction_utils import finish_abstraction
 from core.visualization.visualize_network import visualize_network
-from core.pre_process.pre_process_mine import do_process_before,do_process_after
+from core.pre_process.pre_process_mine import do_process_before, do_process_after
 import copy
+
+
 def is_completely_abstract_network(network: Network):
     """
     :param network: a given network
     :return: bool, True iff network is completely abstract and no more ar_type unions
     are needed
     """
-    for i,layer in enumerate(network.layers[FIRST_ABSTRACT_LAYER:-1]):
+    for i, layer in enumerate(network.layers[FIRST_ABSTRACT_LAYER:-1]):
         if not is_completely_abstract_layer(layer):
             return False
     return True
@@ -29,7 +29,7 @@ def is_completely_abstract_layer(layer):
     # count number of nodes for each of pos_inc/pos_dec/neg_inc/neg_dec ar_type
     artype_counter = Counter(ar_types)
     # layer is fully abstract iff for each ar_type there is at most one node
-    return all(v<=1 for v in artype_counter.values())
+    return all(v <= 1 for v in artype_counter.values())
 
 
 # def abstract_network(
@@ -92,18 +92,13 @@ def is_completely_abstract_layer(layer):
 #     return network
 
 
-def abstract_network(
-        network:Network,
-        do_preprocess:bool=True,
-        visualize:bool=False,
-        verbose:bool=VERBOSE
-) -> Network:
+def abstract_network(network: Network, do_preprocess: bool = True, visualize: bool = False, verbose: bool = VERBOSE) -> (Network, Network):
     if VERBOSE:
         debug_print("original net:")
         print(network)
     if do_preprocess:
         preprocess(network)
-#       do_process_after(network)
+        # do_process_after(network)
     processed_net = copy.deepcopy(network)
     next_layer_part2union = {}
     for i in range(len(network.layers) - 1, FIRST_ABSTRACT_LAYER - 1, -1):
@@ -126,4 +121,4 @@ def abstract_network(
             debug_print("net after abstract {}'th layer:".format(i))
             print(network)
     finish_abstraction(network, next_layer_part2union, verbose=verbose)
-    return network,processed_net
+    return network, processed_net

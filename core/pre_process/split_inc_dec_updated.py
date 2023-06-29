@@ -6,8 +6,7 @@ from core.utils.debug_utils import debug_print
 from core.data_structures.Edge import Edge
 
 
-def adjust_layer_after_split_inc_dec_updated(network:Network,
-                                     layer_index:int=FIRST_INC_DEC_LAYER):
+def adjust_layer_after_split_inc_dec_updated(network: Network, layer_index: int = FIRST_INC_DEC_LAYER):
     cur_layer = network.layers[layer_index]
     next_layer = network.layers[layer_index + 1]
     count = 0

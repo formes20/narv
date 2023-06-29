@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
-
 import random
 import numpy as np
 from core.nnet.read_nnet import network_from_nnet_file, get_all_acas_nets
-#from core.configuration.consts import DELTA
+
+
+# from core.configuration.consts import DELTA
 
 def get_random_input(input_layer_size):
     return {
@@ -17,12 +17,14 @@ def get_random_input(input_layer_size):
         4: random.uniform(-0.5000000551, 0.5000000551)
     }
 
-def get_epsilon_similar_input_values(input_values,delta):
+
+def get_epsilon_similar_input_values(input_values, delta):
     changed_input_values = {}
-    for i,x in input_values.items():
+    for i, x in input_values.items():
         val = x + random.uniform(delta * (-1), delta)
         changed_input_values[i] = val
     return changed_input_values
+
 
 """
 find properties to check with marabou
@@ -32,18 +34,20 @@ then check that for each input in maybe_list, changing in a bit does not
 change the result in all networks. if so, it is a property that we want to 
 prove, otherwise, it is a property that we want to negate
 """
+
+
 def find_properties_to_verify():
     DELTA = 0.04
     wanted_number_of_properties = 5
     current_number_of_properties = 0
     number_of_networks = 45
-    #print(list(range(number_of_networks)))
+    # print(list(range(number_of_networks)))
     networks = get_all_acas_nets(list(range(number_of_networks)))
-    #print(len(networks))
+    # print(len(networks))
     # assume that input layer is constant in all networks
     input_layer_size = len(networks[0].layers[0].nodes)
 
-    #print("start to find properties")
+    # print("start to find properties")
     tries_counter = 0
     good_properties = []
     outputs = []
@@ -59,11 +63,11 @@ def find_properties_to_verify():
         for i, network in enumerate(networks):
             output = network.speedy_evaluate(input_values=input_values)
             current_result = output.argmin()
-            for j,output_value in enumerate(output):
+            for j, output_value in enumerate(output):
                 if j != current_result and output_value == output[current_result]:
                     wrong = True
             if wrong:
-    #            print("发生了两个输出相同")
+                # print("发生了两个输出相同")
                 break
             # print(i, output, current_result)
             # first network - assign value to result
@@ -76,7 +80,7 @@ def find_properties_to_verify():
                     is_good_property = False
                     break
         if not is_good_property:
-    #        print("property doesn't pass pre check")
+            # print("property doesn't pass pre check")
             continue
 
         # check that in some DELTA env the results are equal
@@ -84,8 +88,8 @@ def find_properties_to_verify():
                                                                 delta=0.04)
         for i, network in enumerate(networks):
             output = network.speedy_evaluate(input_values=changed_input_values)
-    #        print(output)
-    #        print(type(output))
+            # print(output)
+            # print(type(output))
             current_result = output.argmin()
             if result != current_result:
                 # print(f"{i}'th network result is different for changed_input_values={changed_input_values}")
@@ -96,13 +100,13 @@ def find_properties_to_verify():
         # if the input property is OK, add it to the good_properties
         if is_good_property:
             current_number_of_properties += 1
-    #        print(f"current_number_of_properties={current_number_of_properties}")
+            # print(f"current_number_of_properties={current_number_of_properties}")
             good_properties.append(input_values)
             outputs.append(original_output)
-    #print(f'len(good_properties)={len(good_properties)}')
-    #print(f'len(outputs)={len(outputs)}')
+    # print(f'len(good_properties)={len(good_properties)}')
+    # print(f'len(outputs)={len(outputs)}')
 
-    for i,good_property in enumerate(good_properties):
+    for i, good_property in enumerate(good_properties):
         print(f'"adversarial_{i}":', end=" ")
         print(r"{")
         # input
@@ -127,7 +131,7 @@ def find_properties_to_verify():
         print(r"},")
 
         # print(f"{i}'th good_property is: {good_property}")
-    #print(f"tries_counter={tries_counter}")
+    # print(f"tries_counter={tries_counter}")
 
 
 if __name__ == '__main__':

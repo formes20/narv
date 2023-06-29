@@ -1,5 +1,3 @@
-#/usr/bin/python3
-
 """
 run one experiment - query cegarabou engine:
 calculate if property (p1 or p2) is sat/unsat in a net which is represented by a given .nnet formatted file
@@ -10,12 +8,8 @@ example of usage: python3 -f ACASXU_run2a_1_8_batch_2000.nnet -a heuristic -r ce
 """
 
 # external imports
-
 import sys
 import os
-#sys.path.append("/CEGAR_NN")
-#sys.path.append("/guazai/pyfile")
-
 import json
 import copy
 import time
@@ -30,7 +24,8 @@ from core.utils.debug_utils import debug_print
 from core.utils.verification_properties_utils import (
     get_test_property_acas, is_satisfying_assignment, TEST_PROPERTY_ACAS
 )
-from core.pre_process.pre_process_mine import do_process_before,do_process_after
+from core.pre_process.pre_process_mine import do_process_before, do_process_after
+
 
 def generate_results_filename(
         nnet_filename, property_id, mechanism, refinement_type,
@@ -133,7 +128,7 @@ def one_experiment(
     orig_net = copy.deepcopy(net)
     print("query using Marabou with AR")
     t2 = time.time()
-    #do_process_before(net,property_id)
+    # do_process_before(net,property_id)
     if abstraction_type == "complete":
         net = abstract_network(net)
     elif abstraction_type == "heuristic_alg2":
@@ -177,7 +172,7 @@ def one_experiment(
         ar_times.append(t5 - t4)
         ar_sizes.append(net.get_general_net_data()["num_nodes"])
         # if verbose:
-        print("query time after A and {} R steps is {}".format(num_of_refine_steps, t5-t4))
+        print("query time after A and {} R steps is {}".format(num_of_refine_steps, t5 - t4))
         debug_print(net.get_general_net_data())
         if query_result == "UNSAT":
             # if always y'<3.99 then also always y<3.99
@@ -276,18 +271,18 @@ def one_experiment(
     df.to_json(os.path.join(results_directory, "df_" + results_filename))
     # write result to output file
     with open(os.path.join(results_directory, results_filename), "w") as fw:
-        fw.write("-"*80)
+        fw.write("-" * 80)
         fw.write("parameters:")
-        fw.write("-"*80)
+        fw.write("-" * 80)
         fw.write("\n")
         for arg in vars(args):
             fw.write("{}: {}\n".format(arg, getattr(args, arg)))
-        fw.write("+"*80)
+        fw.write("+" * 80)
         fw.write("results:")
-        fw.write("+"*80)
+        fw.write("+" * 80)
         fw.write("\n")
-        for (k,v) in res:
-            fw.write("{}: {}\n".format(k,v))
+        for (k, v) in res:
+            fw.write("{}: {}\n".format(k, v))
     return res
 
 
@@ -297,20 +292,20 @@ def parse_args():
     parser.add_argument("-nn", "--net_number",
                         dest="net_number",
                         default="2_8",
-                        choices=[f"{x}_{y}" for x in range(1,6) for y in range(1, 10)])
+                        choices=[f"{x}_{y}" for x in range(1, 6) for y in range(1, 10)])
     parser.add_argument("-pid", "--property_id",
                         dest="property_id",
-                        default="adversarial_0", # consts.PROPERTY_ID,
+                        default="adversarial_0",  # consts.PROPERTY_ID,
                         choices=TEST_PROPERTY_ACAS.keys(),
                         type=str)
     parser.add_argument("-m", "--mechanism",
                         dest="mechanism",
-                        default="marabou_with_ar",  #"marabou_with_ar",
+                        default="marabou_with_ar",  # "marabou_with_ar",
                         choices=["marabou", "marabou_with_ar"],
                         type=str)
     parser.add_argument("-a", "--abstraction_type",
                         dest="abstraction_type",
-                        default="naive", #BEST_CEGARABOU_METHODS["A"],
+                        default="naive",  # BEST_CEGARABOU_METHODS["A"],
                         choices=["naive", "alg2", "random", "clustering"])
     parser.add_argument("-r", "--refinement_type",
                         dest="refinement_type",
@@ -362,4 +357,3 @@ if __name__ == '__main__':
         abstraction_sequence=args.abstraction_sequence,
         results_directory=args.results_directory)
     debug_print(one_exp_res)
-

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import random
 from core.data_structures.Network import Network
 from core.utils.alg2_utils import has_violation, get_limited_random_inputs
@@ -11,10 +9,10 @@ from core.configuration.consts import VERBOSE, FIRST_ABSTRACT_LAYER
 
 def heuristic_abstract_random(
         network: Network,
-        test_property:dict,
-        do_preprocess:bool=True,
-        sequence_length:int=50,
-        verbose:bool=VERBOSE
+        test_property: dict,
+        do_preprocess: bool = True,
+        sequence_length: int = 50,
+        verbose: bool = VERBOSE
 ) -> Network:
     """
     abstract a network until @test_property holds in resulted abstract network
@@ -37,7 +35,7 @@ def heuristic_abstract_random(
     # while no violation occurs, continue to abstract
     while not has_violation(network, test_property, random_inputs):
         # check that the network is not fully abstracted
-        if all(len(layer.nodes)<=4 for layer in network.layers[1:-1]):
+        if all(len(layer.nodes) <= 4 for layer in network.layers[1:-1]):
             break
         # abstract constant number of random nodes
         layer_couples = []
