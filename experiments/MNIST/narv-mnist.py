@@ -11,7 +11,7 @@ from core.configuration import consts
 from experiments.consts import BEST_CEGARABOU_METHODS
 from core.utils.debug_utils import debug_print
 from core.utils.verification_properties_utils import is_satisfying_assignment
-from inputs.mnist_properties_delta_003 import TEST_PROPERTY_MNIST
+from inputs.mnist_properties_delta_002 import TEST_PROPERTY_MNIST
 from core.abstraction.global_abstraction import global_abstraction_based_on_contribution
 from core.abstraction.kmeans_abstraction import kmeans_abstraction_based_on_contribution
 import _pickle as cPickle

@@ -43,7 +43,7 @@ sh test_example.sh
 ## Experiments
 
 Folder `experiments` contains the files from all experiments, including inputs (properties), networks, and results.
-Each dataset folder has a `narv-*` file, which used to run the corresponding experiment. 
+Each dataset folder has a `narv-*` file, which used to run the corresponding experiment.
 
 ## Code Structure
 
