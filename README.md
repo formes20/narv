@@ -1,41 +1,27 @@
 # NARv
 
-NARv is a noval CEGAR (counterexample-guided abstraction refinement) based neural network verification tool. 
-Inspired by *[An Abstraction-Based Framework for Neural Network Verification](https://doi.org/10.1007/978-3-030-53288-8_3)*, 
-NARv implements a new pre-process method and new abstraction-refinement algorithms.  
-
-NARv has the following differences from the above CEGAR-based verification tool:
-
-+ In pre-process, NARv splits each neuron into two neurons instead of four;
-+ NARv includes a new abstract operation `freeze`;
-+ NARv consider the activation range of each neuron as the evaluation of abstract/refine operation.
+**NARv**, short for _**N**etwork **A**bstraction-**R**efinement for **v**erification_, is a neural network verification tool based on structure-oriented CEGAR (counterexample-guided abstraction refinement). The technique details can be found in [[1]](#1) and it is inspired by [[2]](#2).
 
 ## Dependencies
 
-NARv is based on the [Marabou](https://github.com/NeuralNetworkVerification/Marabou) solver,
-using its data structures and python API for SAT solving.
+#### [Marabou](https://github.com/NeuralNetworkVerification/Marabou) (checked compatibility with commit [30b23b9](https://github.com/NeuralNetworkVerification/Marabou/tree/30b23b9dd59c7656e61f3cf8b04d8ba4996d0cbb))
 
-This project includes the dependent Marabou in the `Marabou` folder. 
-To build both Marabou and Maraboupy, run:
-
+- Build both Marabou and Maraboupy:
 ```
-cd path/to/marabou/repo/folder
-mkdir build 
-cd build
+cd /path/to/marabou/folder
+mkdir build && cd build
 cmake .. -DBUILD_PYTHON=ON
 cmake --build .
 ```
 
-After building, export maraboupy folder to Python path: 
-
+- Export maraboupy folder to Python path: 
 ```
 PYTHONPATH=PYTHONPATH:/path/to/marabou/folder
 ```
 
 ## Getting Started
 
-Now, marabou is available as solve engine, you can run an example in the `tests` folder:
-
+You can try an example in the [`tests`](tests/) folder:
 ```
 sh test_example.sh
 ```
@@ -81,3 +67,12 @@ Files in the `refinement` folder refine (split back) abstract nodes.
 Folder `utils` contains helper functions, test properties, and marabou API utilities.
 
 More implementation details of each file can be found in the `doc` folder.
+
+
+## References
+1. <a id="1"></a> 
+Jiaxiang Liu, Yunhan Xing, Xiaomu Shi, Fu Song, Zhiwu Xu, Zhong Ming:
+Abstraction and Refinement: Towards Scalable and Exact Verification of Neural Networks. [CoRR abs/2207.00759](https://doi.org/10.48550/arXiv.2207.00759) (2022)
+
+2. <a id="2"></a> Yizhak Yisrael Elboher, Justin Gottschlich, Guy Katz:
+An Abstraction-Based Framework for Neural Network Verification. CAV (1) 2020: 43-65
