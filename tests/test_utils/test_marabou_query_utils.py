@@ -1,6 +1,6 @@
 #/usr/bin/python3
 
-from import_marabou import dynamically_import_marabou
+from core.import_marabou import dynamically_import_marabou
 from core.visualization.visualize_network import visualize_network
 
 

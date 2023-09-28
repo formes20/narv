@@ -1,5 +1,5 @@
 import os
-import import_marabou
+import core.import_marabou
 from maraboupy import MarabouNetworkNNet
 from maraboupy import MarabouNetworkONNX
 from core.configuration.consts import (

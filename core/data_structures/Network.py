@@ -6,7 +6,7 @@ from typing import Tuple, Dict, List, TypeVar
 AnyType = TypeVar('T')
 
 sys.path.append("/home/artifact/narv")
-from import_marabou import dynamically_import_marabou
+from core.import_marabou import dynamically_import_marabou
 
 dynamically_import_marabou()
 from maraboupy import MarabouNetworkNNet

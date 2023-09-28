@@ -5,7 +5,7 @@ import sys
 import copy
 import random
 sys.path.append("/home/artifact/narv")
-from import_marabou import dynamically_import_marabou
+from core.import_marabou import dynamically_import_marabou
 dynamically_import_marabou()
 from maraboupy import MarabouCore
 

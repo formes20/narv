@@ -6,7 +6,7 @@ import time
 import pandas as pd
 # import timeout_decorator
 
-from import_marabou import dynamically_import_marabou
+from core.import_marabou import dynamically_import_marabou
 from core.configuration import consts
 from experiments.consts import BEST_CEGARABOU_METHODS
 from core.utils.debug_utils import debug_print
