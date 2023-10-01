@@ -21,52 +21,28 @@ PYTHONPATH=PYTHONPATH:/path/to/marabou/folder
 
 ## Getting Started
 
-You can try an example in the [`tests`](tests/) folder:
+You can try an example in the [`tests/`](tests/) folder:
 ```
 sh test_example.sh
 ```
 
-## Experiments
 
-Folder `experiments` contains the files from all experiments, including inputs (properties), networks, and results.
-Each dataset folder has a `narv-*` file, which used to run the corresponding experiment.
+## File Tree
 
-## Code Structure
-
-The core pre-process and abstraction-refinement procedure of NARv is placed in the `core` folder:
 ```
-|--core/
-|  |--abstraction/
-|  |--data_structures/
-|  |--nnet/
-|  |--pre_process/
-|  |--refinement/
-|  |--utils/
-...
-|  |--import_marabou.py
-|--narv.py (key func: one_experiment())
+|--core/ 
+|--experiments/
+|--planet/
+|--tests/
+|--narv.py
+|--README.md
 ```
 
-NARv receives a `.nnet` or `onnx` format neural network as input, it is parsed by the methods in the `core/nnet` folder.
-The parsed network is represented as the network structure in the `core/data_structures` folder, it is also called a 
-"full network" (without abstraction). 
+- Folder [`core/`](core/): the main code of NARv.
+- Folder [`experiments/`](experiments/): the benchmarks and the experimental data for the TOSEM submission.
+- Folder [`planet/`](planet/): the code of the tool [Planet](https://github.com/progirep/planet) from its repository.
+- Folder [`tests/`](tests/): some testing scripts for NARv.
 
-Files in the `data_structures` folder :
-
-+ File `ARNode.py` stands for "abstraction-refinement node", represents a node in the "abstract network", and includes
-the key `split_inc_dec` function.
-+ File `Layer.py` represents a layer of nodes, and includes key "abstract" and "split" functions.
-+ File `Network.py` represents the network structure, and manipulations.
-
-Files in the `pre_porcess` folder are used before abstraction for splitting nodes into `inc` and / or `dec` nodes.
-
-Files in the `abstraction` folder `merge` or `freeze` nodes.
-
-Files in the `refinement` folder refine (split back) abstract nodes.
-
-Folder `utils` contains helper functions, test properties, and marabou API utilities.
-
-More implementation details of each file can be found in the `doc` folder.
 
 
 ## References
